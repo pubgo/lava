@@ -18,6 +18,31 @@ export function encodeFrame(payload: Uint8Array, flags = 0): Uint8Array {
 }
 
 export function decodeFrames(buf: Uint8Array): GrpcWebFrame[] {
+  const { frames } = extractFrames(buf);
+  return frames;
+}
+
+/** Incremental gRPC-Web frame parser for live server-streaming. */
+export class GrpcWebFrameReader {
+  private buf: Uint8Array = new Uint8Array(0);
+
+  push(chunk: Uint8Array): GrpcWebFrame[] {
+    if (chunk.length === 0) return [];
+    const next = new Uint8Array(this.buf.length + chunk.length);
+    next.set(this.buf, 0);
+    next.set(chunk, this.buf.length);
+    const { frames, rest } = extractFrames(next);
+    this.buf = new Uint8Array(rest);
+    return frames;
+  }
+
+  /** Bytes not yet forming a complete frame. */
+  get pending(): number {
+    return this.buf.length;
+  }
+}
+
+function extractFrames(buf: Uint8Array): { frames: GrpcWebFrame[]; rest: Uint8Array } {
   const frames: GrpcWebFrame[] = [];
   let off = 0;
   while (off + 5 <= buf.length) {
@@ -28,12 +53,11 @@ export function decodeFrames(buf: Uint8Array): GrpcWebFrame[] {
         (buf[off + 3]! << 8) |
         buf[off + 4]!) >>>
       0;
-    off += 5;
-    if (off + length > buf.length) {
+    if (off + 5 + length > buf.length) {
       break;
     }
-    const payload = buf.subarray(off, off + length);
-    off += length;
+    const payload = buf.subarray(off + 5, off + 5 + length);
+    off += 5 + length;
     frames.push({
       flags,
       payload,
@@ -41,7 +65,42 @@ export function decodeFrames(buf: Uint8Array): GrpcWebFrame[] {
       isCompressed: (flags & COMPRESSED_FLAG) !== 0,
     });
   }
-  return frames;
+  return { frames, rest: buf.subarray(off) };
+}
+
+/**
+ * Streaming base64 → bytes decoder for grpc-web-text bodies.
+ * Decodes complete 4-char groups as they arrive; call {@link finish} at EOF.
+ */
+export class Base64ByteDecoder {
+  private pending = "";
+
+  push(text: string): Uint8Array {
+    this.pending += text.replace(/[^A-Za-z0-9+/=]/g, "");
+    const complete = this.pending.length - (this.pending.length % 4);
+    if (complete === 0) return new Uint8Array(0);
+    const chunk = this.pending.slice(0, complete);
+    this.pending = this.pending.slice(complete);
+    return base64ChunkToBytes(chunk);
+  }
+
+  finish(): Uint8Array {
+    if (!this.pending) return new Uint8Array(0);
+    const out = base64ChunkToBytes(this.pending);
+    this.pending = "";
+    return out;
+  }
+}
+
+function base64ChunkToBytes(text: string): Uint8Array {
+  try {
+    const bin = atob(text);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  } catch (err) {
+    throw new Error(`invalid grpc-web-text base64: ${err instanceof Error ? err.message : String(err)}`);
+  }
 }
 
 export function parseTrailerHeaders(payload: Uint8Array): Headers {

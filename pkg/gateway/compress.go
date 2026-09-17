@@ -92,17 +92,27 @@ func (s *streamHTTP) ensureResponseCompression() {
 	}
 	s.compNegotiated = true
 
-	s.handler.Response().Header.Set("Grpc-Accept-Encoding", s.supportedAcceptEncoding())
+	s.setResponseHeader("Grpc-Accept-Encoding", s.supportedAcceptEncoding())
 
-	accept := string(s.handler.Request().Header.Peek("Grpc-Accept-Encoding"))
+	accept := s.requestHeaderPeek("Grpc-Accept-Encoding")
 	if accept == "" {
-		accept = string(s.handler.Request().Header.Peek("grpc-accept-encoding"))
+		accept = s.requestHeaderPeek("grpc-accept-encoding")
 	}
 	if c, name := s.negotiateResponseCompressor(accept); c != nil {
 		s.respCompressor = c
 		s.respEncoding = name
-		s.handler.Response().Header.Set("Grpc-Encoding", name)
+		s.setResponseHeader("Grpc-Encoding", name)
 	}
+}
+
+func (s *streamHTTP) requestHeaderPeek(key string) string {
+	if s.fctx != nil {
+		return string(s.fctx.Request.Header.Peek(key))
+	}
+	if s.handler != nil {
+		return string(s.handler.Request().Header.Peek(key))
+	}
+	return ""
 }
 
 func compressMessage(c Compressor, data []byte) ([]byte, error) {
@@ -143,9 +153,9 @@ func decompressMessage(c Compressor, data []byte) ([]byte, error) {
 }
 
 func (s *streamHTTP) requestEncoding() string {
-	enc := string(s.handler.Request().Header.Peek("Grpc-Encoding"))
+	enc := s.requestHeaderPeek("Grpc-Encoding")
 	if enc == "" {
-		enc = string(s.handler.Request().Header.Peek("grpc-encoding"))
+		enc = s.requestHeaderPeek("grpc-encoding")
 	}
 	return normalizeContentCoding(enc)
 }

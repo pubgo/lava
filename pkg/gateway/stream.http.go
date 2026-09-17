@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/errors"
+	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -26,6 +27,10 @@ type streamHTTP struct {
 	method     *methodWrapper
 	path       *routertree.MatchOperation
 	handler    fiber.Ctx
+	fctx       *fasthttp.RequestCtx // preferred for live server-stream (Fiber ctx is pooled)
+	reqCT      string              // snapshot of request Content-Type
+	reqBody    []byte              // snapshot of request body for RecvMsg
+	reqMethod  string
 	ctx        context.Context
 	header     metadata.MD
 	trailer    metadata.MD
@@ -46,6 +51,36 @@ type streamHTTP struct {
 
 var _ grpc.ServerStream = (*streamHTTP)(nil)
 
+func (s *streamHTTP) setResponseHeader(k, v string) {
+	if s.fctx != nil {
+		s.fctx.Response.Header.Set(k, v)
+		return
+	}
+	if s.handler != nil {
+		s.handler.Response().Header.Set(k, v)
+	}
+}
+
+func (s *streamHTTP) requestContentType() string {
+	if s.reqCT != "" {
+		return s.reqCT
+	}
+	if s.handler != nil {
+		return string(s.handler.Request().Header.ContentType())
+	}
+	return ""
+}
+
+func (s *streamHTTP) httpMethod() string {
+	if s.reqMethod != "" {
+		return s.reqMethod
+	}
+	if s.handler != nil {
+		return s.handler.Method()
+	}
+	return http.MethodPost
+}
+
 func (s *streamHTTP) SetHeader(md metadata.MD) error {
 	s.header = metadata.Join(s.header, md)
 	if s.sentHeader {
@@ -53,7 +88,7 @@ func (s *streamHTTP) SetHeader(md metadata.MD) error {
 			if len(v) == 0 {
 				continue
 			}
-			s.handler.Response().Header.Set(k, v[0])
+			s.setResponseHeader(k, v[0])
 		}
 	}
 	return nil
@@ -66,7 +101,7 @@ func (s *streamHTTP) SendHeader(md metadata.MD) error {
 			if len(v) == 0 {
 				continue
 			}
-			s.handler.Response().Header.Set(k, v[0])
+			s.setResponseHeader(k, v[0])
 		}
 		return nil
 	}
@@ -76,8 +111,7 @@ func (s *streamHTTP) SendHeader(md metadata.MD) error {
 		if len(v) == 0 {
 			continue
 		}
-		// HTTP header 通常只支持单个值，取第一个值
-		s.handler.Response().Header.Set(k, v[0])
+		s.setResponseHeader(k, v[0])
 	}
 
 	return nil
@@ -114,8 +148,10 @@ func (s *streamHTTP) SendMsg(m any) error {
 		return errors.New("stream http send proto msg got unknown type message")
 	}
 
-	if fRsp, ok := s.handler.Response().BodyWriter().(http.Flusher); ok {
-		defer fRsp.Flush()
+	if s.writer == nil && s.handler != nil {
+		if fRsp, ok := s.handler.Response().BodyWriter().(http.Flusher); ok {
+			defer fRsp.Flush()
+		}
 	}
 
 	cur := reply.ProtoReflect()
@@ -127,10 +163,13 @@ func (s *streamHTTP) SendMsg(m any) error {
 	reqName := msg.ProtoReflect().Descriptor().FullName()
 	rspInterceptor := s.method.srv.opts.responseInterceptors[reqName]
 	if rspInterceptor != nil {
+		if s.handler == nil {
+			return errors.New("response interceptor requires fiber handler")
+		}
 		return errors.Wrapf(rspInterceptor(s.handler, msg), "failed to do rsp interceptor response data by %s", reqName)
 	}
 
-	ct := string(s.handler.Request().Header.ContentType())
+	ct := s.requestContentType()
 	isGRPC := isGRPCContentType(ct)
 	codec := s.lookupCodec(ct)
 
@@ -206,7 +245,7 @@ func (s *streamHTTP) RecvMsg(m any) error {
 		return errors.New("stream http recv proto msg got unknown type message")
 	}
 
-	method := s.handler.Method()
+	method := s.httpMethod()
 	hasBody := method == http.MethodPut || method == http.MethodPost || method == http.MethodPatch
 	allowBody := hasBody || method == http.MethodDelete
 
@@ -220,19 +259,32 @@ func (s *streamHTTP) RecvMsg(m any) error {
 		reqName := msg.ProtoReflect().Descriptor().FullName()
 		reqInterceptor := s.method.srv.opts.requestInterceptors[reqName]
 		if reqInterceptor != nil {
+			if s.handler == nil {
+				return errors.New("request interceptor requires fiber handler")
+			}
 			return errors.Wrapf(reqInterceptor(s.handler, msg), "failed to go req interceptor request data by %s", reqName)
 		}
 
-		ct := string(s.handler.Request().Header.ContentType())
+		ct := s.requestContentType()
 		isGRPC := isGRPCContentType(ct)
 		codec := s.lookupCodec(ct)
 
+		body := s.reqBody
+		useStream := false
+		if body == nil && s.handler != nil {
+			if s.handler.Request().IsBodyStream() {
+				useStream = true
+			} else {
+				body = s.handler.Body()
+			}
+		}
+
 		// PUT/POST/PATCH 必须有 body (gRPC 请求除外，因为需要先解析帧)
-		if hasBody && !isGRPC && len(s.handler.Body()) == 0 {
+		if hasBody && !isGRPC && len(body) == 0 && !useStream {
 			return status.Errorf(codes.InvalidArgument, "request body is nil, operation=%s", reqName)
 		}
 
-		if s.handler.Request().IsBodyStream() {
+		if useStream {
 			reader := s.handler.Request().BodyStream()
 			if isGRPC {
 				// Read gRPC frame header: 1 byte flags + 4 bytes length
@@ -263,7 +315,6 @@ func (s *streamHTTP) RecvMsg(m any) error {
 				}
 			}
 		} else {
-			body := s.handler.Body()
 			if isGRPC {
 				// gRPC frame: 1 byte flags + 4 bytes length + message
 				if len(body) < 5 {

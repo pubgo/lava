@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"bufio"
 	"encoding/base64"
 	"encoding/json"
 	"io"
@@ -28,30 +29,49 @@ func newHTTPFrontend(mux *Mux) *httpFrontend {
 }
 
 func (f *httpFrontend) handle(ctx fiber.Ctx) error {
-	webWriter, handled, err := f.prepareGRPCWeb(ctx)
+	webTyp, webEnc, isGRPCWeb, err := f.prepareGRPCWeb(ctx)
 	if err != nil {
 		return f.writeHTTPError(ctx, nil, err)
-	}
-	if handled {
-		defer webWriter.flushWithTrailer()
 	}
 
 	match, mth, params, err := f.match(ctx)
 	if err != nil {
-		return f.writeHTTPError(ctx, webWriter, err)
+		var ww *fiberWebWriter
+		if isGRPCWeb {
+			ww = newFiberWebWriter(ctx, webTyp, webEnc)
+			defer ww.flushWithTrailer()
+		}
+		return f.writeHTTPError(ctx, ww, err)
 	}
 
 	op := operationFromMethod(mth)
 	if op.StreamDesc != nil && op.StreamDesc.ClientStreams {
-		return f.writeHTTPError(ctx, webWriter, status.Error(codes.Unimplemented,
+		var ww *fiberWebWriter
+		if isGRPCWeb {
+			ww = newFiberWebWriter(ctx, webTyp, webEnc)
+			defer ww.flushWithTrailer()
+		}
+		return f.writeHTTPError(ctx, ww, status.Error(codes.Unimplemented,
 			"HTTP/gRPC-Web frontend does not support client-streaming or bidi RPCs; use WebSocket or native gRPC"))
 	}
-
-	stream := f.buildStream(ctx, mth, match, params, webWriter)
 
 	ctx.Set(httputil.HeaderXRequestVersion, version.Version())
 	ctx.Set(httputil.HeaderXRequestOperation, match.Operation)
 
+	// Server-streams must use Fiber's stream writer so each SendMsg Flush reaches
+	// the client while the handler is still running (pub/sub / long-push).
+	isServerStream := op.StreamDesc != nil && op.StreamDesc.ServerStreams && !op.StreamDesc.ClientStreams
+	if isServerStream {
+		return f.handleServerStream(ctx, webTyp, webEnc, isGRPCWeb, match, mth, params, op)
+	}
+
+	var webWriter *fiberWebWriter
+	if isGRPCWeb {
+		webWriter = newFiberWebWriter(ctx, webTyp, webEnc)
+		defer webWriter.flushWithTrailer()
+	}
+
+	stream := f.buildStream(ctx, mth, match, params, webWriter)
 	header, trailer, err := f.mux.DispatchFrontend(stream.Context(), stream, op)
 	if err != nil {
 		log.Error().
@@ -74,6 +94,84 @@ func (f *httpFrontend) handle(ctx fiber.Ctx) error {
 	}
 	return nil
 }
+
+func (f *httpFrontend) handleServerStream(
+	ctx fiber.Ctx,
+	webTyp, webEnc string,
+	isGRPCWeb bool,
+	match *MatchOperation,
+	mth *methodWrapper,
+	params url.Values,
+	op *Operation,
+) error {
+	// Snapshot request data while Fiber ctx is still valid. SendStreamWriter runs
+	// later on another goroutine after the Fiber ctx may be returned to the pool.
+	fctx := ctx.RequestCtx()
+	stream := f.buildStream(ctx, mth, match, params, nil)
+	stream.fctx = fctx
+	stream.reqCT = string(ctx.Request().Header.ContentType())
+	stream.reqMethod = ctx.Method()
+	stream.reqBody = append([]byte(nil), ctx.Body()...)
+	stream.handler = nil // do not touch pooled Fiber ctx inside the stream writer
+
+	if isGRPCWeb {
+		fctx.Response.Header.Set("Content-Type", webTyp+"+"+webEnc)
+	} else {
+		fctx.Response.Header.Set(fiber.HeaderContentType, "application/x-ndjson")
+	}
+
+	return ctx.SendStreamWriter(func(bw *bufio.Writer) {
+		live := &bufioHTTPFlusher{w: bw}
+
+		var webWriter *fiberWebWriter
+		if isGRPCWeb {
+			webWriter = newFiberWebWriterTo(nil, fctx, webTyp, webEnc, live)
+			stream.writer = webWriter
+		} else {
+			stream.writer = live
+		}
+
+		header, trailer, err := f.mux.DispatchFrontend(stream.Context(), stream, op)
+		if err != nil {
+			log.Error().
+				Str("method", stream.reqMethod).
+				Str("path", match.Operation).
+				Msg("invoke failed")
+			if webWriter != nil {
+				st := status.Convert(err)
+				fctx.Response.Header.Set("Grpc-Status", strconv.FormatUint(uint64(st.Code()), 10))
+				fctx.Response.Header.Set("Grpc-Message", encodeGRPCMessage(st.Message()))
+				webWriter.markErrorTrailer()
+				webWriter.flushWithTrailer()
+			} else {
+				_ = bw.Flush()
+			}
+			return
+		}
+
+		if webWriter != nil {
+			applyFasthttpMetadata(fctx, header, true)
+			applyFasthttpMetadata(fctx, trailer, true)
+			applyFasthttpMetadata(fctx, stream.trailer, true)
+			webWriter.ensureTrailer()
+			webWriter.flushWithTrailer()
+			return
+		}
+
+		applyFasthttpMetadata(fctx, header, false)
+		applyFasthttpMetadata(fctx, trailer, false)
+		applyFasthttpMetadata(fctx, stream.trailer, false)
+		_ = bw.Flush()
+	})
+}
+
+// bufioHTTPFlusher adapts *bufio.Writer to http.Flusher for per-message streaming.
+type bufioHTTPFlusher struct {
+	w *bufio.Writer
+}
+
+func (b *bufioHTTPFlusher) Write(p []byte) (int, error) { return b.w.Write(p) }
+func (b *bufioHTTPFlusher) Flush()                      { _ = b.w.Flush() }
 
 // writeHTTPError maps a gRPC status to the HTTP/gRPC-Web response surface.
 // Plain HTTP/JSON gets an HTTP status from HTTPStatusFromCode; gRPC-Web gets
@@ -107,25 +205,25 @@ func encodeGRPCMessage(msg string) string {
 	return strings.ReplaceAll(url.PathEscape(msg), "+", "%20")
 }
 
-func (f *httpFrontend) prepareGRPCWeb(ctx fiber.Ctx) (ww *fiberWebWriter, handled bool, err error) {
+func (f *httpFrontend) prepareGRPCWeb(ctx fiber.Ctx) (typ, enc string, ok bool, err error) {
 	ct := string(ctx.Request().Header.ContentType())
-	typ, enc, ok := isWebRequestFromContentType(ct, ctx.Method())
+	typ, enc, ok = isWebRequestFromContentType(ct, ctx.Method())
 	if !ok {
-		return nil, false, nil
+		return "", "", false, nil
 	}
 
 	if strings.EqualFold(ctx.Get("Upgrade"), "websocket") {
-		return nil, false, fiber.NewError(fiber.StatusUpgradeRequired, "websocket requests must use the gateway WebSocket server (Mux.WebSocketHandler on net/http)")
+		return "", "", false, fiber.NewError(fiber.StatusUpgradeRequired, "websocket requests must use the gateway WebSocket server (Mux.WebSocketHandler on net/http)")
 	}
 
 	ctx.Request().Header.SetContentType(grpcBase + "+" + enc)
 	if typ == grpcWebText {
 		if err = decodeGRPCWebTextBody(ctx); err != nil {
-			return nil, false, err
+			return "", "", false, err
 		}
 	}
 
-	return newFiberWebWriter(ctx, typ, enc), true, nil
+	return typ, enc, true, nil
 }
 
 func decodeGRPCWebTextBody(ctx fiber.Ctx) error {

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/valyala/fasthttp"
 )
 
 const (
@@ -37,10 +38,12 @@ func isWebRequestFromContentType(ct, method string) (typ, enc string, ok bool) {
 }
 
 // fiberWebWriter is a gRPC Web writer specifically for Fiber framework.
-// It writes headers directly to Fiber response headers.
+// It writes headers directly to Fiber / fasthttp response headers.
 type fiberWebWriter struct {
 	ctx         fiber.Ctx
+	fctx        *fasthttp.RequestCtx // used when Fiber ctx may be pooled (server-stream)
 	resp        io.Writer
+	respCloser  io.Closer // flushes streaming base64 encoder for grpc-web-text
 	flushWriter http.Flusher
 	typ         string // grpcWeb or grpcWebText
 	enc         string // proto or json
@@ -49,29 +52,60 @@ type fiberWebWriter struct {
 }
 
 func newFiberWebWriter(ctx fiber.Ctx, typ, enc string) *fiberWebWriter {
-	raw := ctx.Response().BodyWriter()
+	return newFiberWebWriterTo(ctx, ctx.RequestCtx(), typ, enc, ctx.Response().BodyWriter())
+}
+
+// newFiberWebWriterTo wires gRPC-Web framing onto an arbitrary writer (e.g. Fiber
+// SendStreamWriter's bufio.Writer) so server-streams can flush per message.
+func newFiberWebWriterTo(ctx fiber.Ctx, fctx *fasthttp.RequestCtx, typ, enc string, raw io.Writer) *fiberWebWriter {
 	resp := raw
+	var respCloser io.Closer
 	if typ == grpcWebText {
-		resp = &base64ChunkWriter{w: resp}
-	}
-	var flusher http.Flusher
-	if f, ok := raw.(http.Flusher); ok {
-		flusher = f
+		bw := newBase64ChunkWriter(raw)
+		resp = bw
+		respCloser = bw
 	}
 	return &fiberWebWriter{
 		ctx:         ctx,
+		fctx:        fctx,
 		typ:         typ,
 		enc:         enc,
 		resp:        resp,
-		flushWriter: flusher,
+		respCloser:  respCloser,
+		flushWriter: asHTTPFlusher(raw),
+	}
+}
+
+type flushErrAdapter struct {
+	f interface{ Flush() error }
+}
+
+func (a flushErrAdapter) Flush() { _ = a.f.Flush() }
+
+func asHTTPFlusher(w io.Writer) http.Flusher {
+	if f, ok := w.(http.Flusher); ok {
+		return f
+	}
+	if f, ok := w.(interface{ Flush() error }); ok {
+		return flushErrAdapter{f}
+	}
+	return nil
+}
+
+func (w *fiberWebWriter) setContentType(v string) {
+	if w.fctx != nil {
+		w.fctx.Response.Header.Set("Content-Type", v)
+		return
+	}
+	if w.ctx != nil {
+		w.ctx.Set("Content-Type", v)
 	}
 }
 
 func (w *fiberWebWriter) Write(data []byte) (int, error) {
 	if !w.wroteHeader {
 		w.wroteHeader = true
-		// Set Content-Type header directly on Fiber response
-		w.ctx.Set("Content-Type", w.typ+"+"+w.enc)
+		w.setContentType(w.typ + "+" + w.enc)
 	}
 	w.wroteResp = true
 	return w.resp.Write(data)
@@ -79,15 +113,23 @@ func (w *fiberWebWriter) Write(data []byte) (int, error) {
 
 func (w *fiberWebWriter) writeTrailer() error {
 	tr := make(http.Header)
-	// Collect trailer keys only. grpc-encoding / grpc-accept-encoding are
-	// response headers and must not be re-emitted in the trailer frame.
-	//lint:ignore SA1019 VisitAll is the only available API in this fasthttp version.
-	for key, value := range w.ctx.Response().Header.All() {
-		k := string(key)
-		if !isGRPCWebTrailerHeader(k) {
-			continue
+	if w.fctx != nil {
+		for key, value := range w.fctx.Response.Header.All() {
+			k := string(key)
+			if !isGRPCWebTrailerHeader(k) {
+				continue
+			}
+			tr.Set(k, string(value))
 		}
-		tr[strings.ToLower(k)] = []string{string(value)}
+	} else if w.ctx != nil {
+		//lint:ignore SA1019 VisitAll is the only available API in this fasthttp version.
+		for key, value := range w.ctx.Response().Header.All() {
+			k := string(key)
+			if !isGRPCWebTrailerHeader(k) {
+				continue
+			}
+			tr.Set(k, string(value))
+		}
 	}
 	// Add default grpc-status if not present
 	if tr.Get("grpc-status") == "" {
@@ -130,10 +172,16 @@ func (w *fiberWebWriter) flushWithTrailer() {
 	// gRPC-Web clients always expect a trailer frame (success defaults to grpc-status=0).
 	if !w.wroteHeader {
 		w.wroteHeader = true
-		w.ctx.Set("Content-Type", w.typ+"+"+w.enc)
+		w.setContentType(w.typ + "+" + w.enc)
 	}
 	if err := w.writeTrailer(); err != nil {
 		return
+	}
+	// Must Close the streaming base64 encoder so residual bits and padding are flushed.
+	// Per-Write Encode() with padding would concatenate into invalid base64 for clients.
+	if w.respCloser != nil {
+		_ = w.respCloser.Close()
+		w.respCloser = nil
 	}
 	w.Flush()
 }
@@ -144,20 +192,31 @@ func (w *fiberWebWriter) Flush() {
 	}
 }
 
+// base64ChunkWriter streams binary frames as one continuous base64 body.
+// Do not Encode each Write independently: padded chunks concatenated are not
+// valid base64 and break browser atob / StdEncoding.DecodeString.
 type base64ChunkWriter struct {
-	w io.Writer
+	enc io.WriteCloser
+}
+
+func newBase64ChunkWriter(w io.Writer) *base64ChunkWriter {
+	return &base64ChunkWriter{enc: base64.NewEncoder(base64.StdEncoding, w)}
 }
 
 func (b *base64ChunkWriter) Write(p []byte) (int, error) {
 	if len(p) == 0 {
 		return 0, nil
 	}
-	out := make([]byte, base64.StdEncoding.EncodedLen(len(p)))
-	base64.StdEncoding.Encode(out, p)
-	if _, err := b.w.Write(out); err != nil {
-		return 0, err
+	return b.enc.Write(p)
+}
+
+func (b *base64ChunkWriter) Close() error {
+	if b.enc == nil {
+		return nil
 	}
-	return len(p), nil
+	err := b.enc.Close()
+	b.enc = nil
+	return err
 }
 
 type readCloser struct {

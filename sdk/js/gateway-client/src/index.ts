@@ -44,4 +44,6 @@ export {
   parseTrailerHeaders,
   gzipCompress,
   gzipDecompress,
+  GrpcWebFrameReader,
+  Base64ByteDecoder,
 } from "./frames.js";

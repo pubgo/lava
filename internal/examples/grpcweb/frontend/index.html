@@ -3,22 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>gRPC Web 测试 - protobuf-ts</title>
+    <title>lava gateway client 示例</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            max-width: 900px;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 20px;
             background: #f5f5f5;
         }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
+        h1 { color: #333; text-align: center; }
         .container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -30,10 +25,16 @@
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .card.wide { grid-column: 1 / -1; }
         .card h2 {
             margin-top: 0;
             color: #444;
             font-size: 18px;
+        }
+        .card h3 {
+            margin: 16px 0 8px;
+            font-size: 14px;
+            color: #666;
         }
         label {
             display: block;
@@ -41,13 +42,18 @@
             font-weight: 500;
             color: #555;
         }
-        input[type="text"] {
+        input[type="text"], input[type="number"], select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+        }
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
         }
         button {
             width: 100%;
@@ -57,50 +63,32 @@
             font-size: 14px;
             cursor: pointer;
             transition: background 0.2s;
+            margin-top: 6px;
         }
-        .btn-json {
-            background: #007bff;
-            color: white;
-        }
-        .btn-json:hover {
-            background: #0056b3;
-        }
-        .btn-grpcweb {
-            background: #28a745;
-            color: white;
-            margin-top: 10px;
-        }
-        .btn-grpcweb:hover {
-            background: #1e7e34;
-        }
+        .btn-json { background: #007bff; color: white; }
+        .btn-json:hover { background: #0056b3; }
+        .btn-grpcweb { background: #28a745; color: white; }
+        .btn-grpcweb:hover { background: #1e7e34; }
+        .btn-stream { background: #6f42c1; color: white; }
+        .btn-stream:hover { background: #59359a; }
+        .btn-muted { background: #6c757d; color: white; }
+        .btn-muted:hover { background: #545b62; }
         .result {
-            margin-top: 15px;
-            padding: 15px;
+            margin-top: 12px;
+            padding: 12px;
             background: #f8f9fa;
             border-radius: 4px;
-            font-family: monospace;
-            font-size: 13px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 12px;
             white-space: pre-wrap;
             word-break: break-all;
-            min-height: 100px;
+            min-height: 80px;
             border: 1px solid #e9ecef;
-        }
-        .result.error {
-            background: #fee;
-            border-color: #fcc;
-            color: #c00;
-        }
-        .result.success {
-            background: #efe;
-            border-color: #cfc;
-        }
-        .log-section {
-            grid-column: 1 / -1;
-        }
-        .log-section .result {
-            max-height: 300px;
+            max-height: 280px;
             overflow-y: auto;
         }
+        .result.error { background: #fee; border-color: #fcc; color: #c00; }
+        .result.success { background: #efe; border-color: #cfc; }
         .info {
             background: #e7f3ff;
             border: 1px solid #b6d4fe;
@@ -120,54 +108,123 @@
             border-radius: 4px;
             font-size: 12px;
             font-weight: 500;
-        }
-        .badge-ts {
             background: #3178c6;
             color: white;
+        }
+        .hint { font-size: 12px; color: #777; margin: 0 0 10px; }
+        @media (max-width: 720px) {
+            .container, .row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <h1>lava gateway client 示例 <span class="badge badge-ts">@pubgo/lava-gateway-client</span></h1>
-    
+    <h1>lava gateway client 示例 <span class="badge">@pubgo/lava-gateway-client</span></h1>
+
     <div class="info">
-        <strong>说明：</strong> 本页面通过可对外发布的 SDK <code>@pubgo/lava-gateway-client</code> 调用 lava gateway
-        （用法对齐 agentrun <code>src/lib/rpc.ts</code>）。
+        演示 unary 请求/响应、server-stream、以及 request meta / response headers / trailers。
         <br><br>
-        <strong>HTTP REST：</strong> <code>createHttpJsonClient</code> → <code>/v1/greeter/*</code>
-        <br>
-        <strong>RPC facade：</strong> <code>createGatewayTransport({ format })</code> + protobuf-ts 客户端
-        （<code>json</code> / <code>binary</code> / <code>text</code>，可用下方下拉切换）
-        <br><br>
-        <label for="transportFormat"><strong>RPC transport：</strong></label>
+        <label for="transportFormat"><strong>RPC transport</strong></label>
         <select id="transportFormat">
             <option value="json">json（开发推荐，Network 明文）</option>
             <option value="binary">binary（grpc-web+proto）</option>
             <option value="text">text（grpc-web-text+proto）</option>
         </select>
+        <div class="row">
+            <div>
+                <label for="demoToken">请求 header：x-demo-token</label>
+                <input type="text" id="demoToken" value="demo-secret" placeholder="自定义请求 metadata">
+            </div>
+            <div>
+                <label for="requestId">请求 header：x-request-id</label>
+                <input type="text" id="requestId" value="" placeholder="留空则自动生成">
+            </div>
+        </div>
+        <p class="hint">服务端会把 <code>x-demo-token</code> 回显到响应 header <code>x-demo-echo</code>，并写入 <code>x-demo-trailer</code>。</p>
     </div>
 
     <div class="container">
         <div class="card">
-            <h2>👋 SayHello 测试</h2>
-            <label for="helloName">名称:</label>
-            <input type="text" id="helloName" placeholder="输入名称" value="World">
-            <button class="btn-json" id="helloJsonBtn">发送 HTTP REST 请求</button>
-            <button class="btn-grpcweb" id="helloGrpcBtn">发送 RPC 请求 (rpc.greeter)</button>
+            <h2>Unary · SayHello</h2>
+            <label for="helloName">name</label>
+            <input type="text" id="helloName" value="World">
+            <button class="btn-json" id="helloJsonBtn">HTTP REST</button>
+            <button class="btn-grpcweb" id="helloGrpcBtn">RPC unary（含 headers/trailers）</button>
             <div id="helloResult" class="result">等待测试...</div>
         </div>
-        
+
         <div class="card">
-            <h2>👋 SayGoodbye 测试</h2>
-            <label for="goodbyeName">名称:</label>
-            <input type="text" id="goodbyeName" placeholder="输入名称" value="Friend">
-            <button class="btn-json" id="goodbyeJsonBtn">发送 HTTP REST 请求</button>
-            <button class="btn-grpcweb" id="goodbyeGrpcBtn">发送 RPC 请求 (rpc.greeter)</button>
+            <h2>Unary · SayGoodbye</h2>
+            <label for="goodbyeName">name</label>
+            <input type="text" id="goodbyeName" value="Friend">
+            <button class="btn-json" id="goodbyeJsonBtn">HTTP REST</button>
+            <button class="btn-grpcweb" id="goodbyeGrpcBtn">RPC unary（含 headers/trailers）</button>
             <div id="goodbyeResult" class="result">等待测试...</div>
         </div>
 
-        <div class="card log-section">
-            <h2>📋 请求日志</h2>
+        <div class="card">
+            <h2>Server stream · WatchHello（订阅推送）</h2>
+            <p class="hint">
+              <strong>count=0</strong> 为订阅模式：服务端按间隔持续推送，直到点「取消订阅」。
+              客户端边收边显示（不再等整段 body 结束）。
+            </p>
+            <div class="row">
+                <div>
+                    <label for="watchName">name</label>
+                    <input type="text" id="watchName" value="Streamer">
+                </div>
+                <div>
+                    <label for="watchCount">count（0=一直推）</label>
+                    <input type="number" id="watchCount" value="0" min="0" max="100">
+                </div>
+            </div>
+            <div class="row">
+                <div>
+                    <label for="watchInterval">推送间隔 ms</label>
+                    <input type="number" id="watchInterval" value="1000" min="200" max="10000" step="100">
+                </div>
+                <div>
+                    <label>状态</label>
+                    <div id="watchStatus" class="result" style="min-height:42px;margin-top:0">未订阅</div>
+                </div>
+            </div>
+            <button class="btn-stream" id="watchBtn">订阅 / 开始推送</button>
+            <button class="btn-muted" id="watchAbortBtn">取消订阅 (Abort)</button>
+            <div id="watchResult" class="result">等待订阅...</div>
+        </div>
+
+        <div class="card">
+            <h2>Bidi · Chat</h2>
+            <p class="hint">HTTP / gRPC-Web 不支持 bidi；调用会返回 UNIMPLEMENTED。完整双向流请用 <code>grpcwebsocket</code> 示例。</p>
+            <button class="btn-muted" id="chatBtn">尝试 Chat（预期失败）</button>
+            <div id="chatResult" class="result">等待测试...</div>
+        </div>
+
+        <div class="card wide">
+            <h2>最近一次 RPC 元数据</h2>
+            <div class="row">
+                <div>
+                    <h3>request meta</h3>
+                    <div id="metaRequest" class="result">-</div>
+                </div>
+                <div>
+                    <h3>response headers</h3>
+                    <div id="metaHeaders" class="result">-</div>
+                </div>
+            </div>
+            <div class="row">
+                <div>
+                    <h3>trailers</h3>
+                    <div id="metaTrailers" class="result">-</div>
+                </div>
+                <div>
+                    <h3>status</h3>
+                    <div id="metaStatus" class="result">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card wide">
+            <h2>请求日志</h2>
             <div id="logResult" class="result"></div>
         </div>
     </div>

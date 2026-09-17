@@ -18,13 +18,23 @@ import {
   UnaryCall,
 } from "@protobuf-ts/runtime-rpc";
 
-import { statusName, toRpcError } from "./errors.js";
+import { statusName, toRpcError, GrpcCode } from "./errors.js";
 import { createGrpcWebClient, type GrpcWebClientOptions } from "./grpc-web.js";
 
 export type GrpcWebTransportOptions = GrpcWebClientOptions & RpcOptions & {
   /** Default RpcOptions merged into every call. */
   defaultOptions?: RpcOptions;
 };
+
+function trailerStatusFromHeaders(trailers: Headers): { code: number; message: string } {
+  const raw = trailers.get("grpc-status") ?? trailers.get("Grpc-Status") ?? "0";
+  const code = Number.parseInt(raw, 10);
+  const message = trailers.get("grpc-message") ?? trailers.get("Grpc-Message") ?? "";
+  return {
+    code: Number.isFinite(code) ? code : GrpcCode.Unknown,
+    message: decodeURIComponent(message.replace(/\+/g, " ")),
+  };
+}
 
 function appendMeta(headers: Headers, meta: RpcOptions["meta"]) {
   if (!meta) return;
@@ -121,18 +131,30 @@ export function createGrpcWebTransport(opts: GrpcWebTransportOptions): RpcTransp
 
       void (async () => {
         try {
-          const result = await client.serverStream(fullMethod, method.I.toBinary(input), {
+          let sawTrailer = false;
+          for await (const ev of client.openServerStream(fullMethod, method.I.toBinary(input), {
             headers,
             signal: options.abort,
             compress: opts.acceptCompression,
-          });
-          defHeader.resolve(headersToMeta(result.headers));
-          for (const msg of result.messages) {
-            responses.notifyMessage(method.O.fromBinary(msg));
+          })) {
+            if (ev.type === "headers") {
+              defHeader.resolve(headersToMeta(ev.headers));
+              continue;
+            }
+            if (ev.type === "message") {
+              responses.notifyMessage(method.O.fromBinary(ev.message));
+              continue;
+            }
+            sawTrailer = true;
+            defTrailer.resolve(headersToMeta(ev.trailers));
+            const st = trailerStatusFromHeaders(ev.trailers);
+            defStatus.resolve({ code: statusName(st.code), detail: st.message });
           }
-          responses.notifyComplete();
-          defTrailer.resolve(headersToMeta(result.trailers));
-          defStatus.resolve({ code: statusName(result.grpcStatus), detail: result.grpcMessage });
+          if (!sawTrailer) {
+            defTrailer.resolve({});
+            defStatus.resolve({ code: "OK", detail: "" });
+          }
+          if (!responses.closed) responses.notifyComplete();
         } catch (err) {
           const rpcErr = toRpcError(err, {
             name: method.name,

@@ -19,7 +19,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf dist",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "test": "npm run build && node --test test/*.test.mjs"
   },
   "peerDependencies": {
     "@protobuf-ts/runtime": "^2.9.0",

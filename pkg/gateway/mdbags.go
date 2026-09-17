@@ -46,7 +46,7 @@ func AppendBackendTrailer(ctx context.Context, key string, values ...string) {
 	}
 }
 
-func mergeMD(dst metadata.MD, extra metadata.MD) metadata.MD {
+func mergeMD(dst, extra metadata.MD) metadata.MD {
 	if len(extra) == 0 {
 		return dst
 	}

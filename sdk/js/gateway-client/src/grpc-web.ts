@@ -1,11 +1,14 @@
 import { GatewayError, GrpcCode } from "./errors.js";
 import {
+  Base64ByteDecoder,
   COMPRESSED_FLAG,
   decodeFrames,
   encodeFrame,
+  GrpcWebFrameReader,
   gzipCompress,
   gzipDecompress,
   parseTrailerHeaders,
+  type GrpcWebFrame,
 } from "./frames.js";
 
 export type GrpcWebClientOptions = {
@@ -46,6 +49,11 @@ export type GrpcWebStreamResult = {
   grpcMessage: string;
 };
 
+/** Live server-stream event (frames delivered as the HTTP body arrives). */
+export type GrpcWebStreamEvent =
+  | { type: "message"; message: Uint8Array }
+  | { type: "trailer"; trailers: Headers };
+
 function joinURL(base: string, path: string): string {
   const b = base.replace(/\/+$/, "");
   const p = path.startsWith("/") ? path : `/${path}`;
@@ -81,10 +89,18 @@ function bytesToBase64(bytes: Uint8Array): string {
 }
 
 function base64ToBytes(text: string): Uint8Array {
-  const bin = atob(text.replace(/\s+/g, ""));
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
+  const cleaned = text.replace(/[^A-Za-z0-9+/=]/g, "");
+  try {
+    const bin = atob(cleaned);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  } catch (err) {
+    throw new GatewayError({
+      code: GrpcCode.Internal,
+      message: `invalid grpc-web-text base64 response: ${err instanceof Error ? err.message : String(err)}`,
+    });
+  }
 }
 
 async function maybeDecompress(framePayload: Uint8Array, compressed: boolean, responseEncoding: string | null) {
@@ -99,6 +115,15 @@ async function maybeDecompress(framePayload: Uint8Array, compressed: boolean, re
   return gzipDecompress(framePayload);
 }
 
+function mergeHttpStatusTrailers(res: Response, trailers: Headers) {
+  if (!trailers.has("grpc-status") && !trailers.has("Grpc-Status")) {
+    const hs = res.headers.get("Grpc-Status") ?? res.headers.get("grpc-status");
+    if (hs != null) trailers.set("grpc-status", hs);
+    const hm = res.headers.get("Grpc-Message") ?? res.headers.get("grpc-message");
+    if (hm != null) trailers.set("grpc-message", hm);
+  }
+}
+
 /**
  * Low-level gRPC-Web client (binary or text proto frames).
  * Prefer {@link createGrpcWebTransport} / {@link createGatewayTransport} with protobuf-ts clients.
@@ -107,15 +132,11 @@ export function createGrpcWebClient(opts: GrpcWebClientOptions) {
   const doFetch = opts.fetch ?? globalThis.fetch.bind(globalThis);
   const format = opts.format ?? "binary";
 
-  async function call(
+  async function prepareRequest(
     fullMethod: string,
     requestMessage: Uint8Array,
     callOpts?: GrpcWebCallOptions,
-  ): Promise<{
-    dataFrames: Uint8Array[];
-    headers: Headers;
-    trailers: Headers;
-  }> {
+  ) {
     const compress = callOpts?.compress ?? opts.acceptCompression ?? false;
     let payload = requestMessage;
     let flags = 0;
@@ -151,7 +172,13 @@ export function createGrpcWebClient(opts: GrpcWebClientOptions) {
       body,
       signal: callOpts?.signal,
     });
+    return res;
+  }
 
+  async function consumeBodyBuffered(res: Response): Promise<{
+    dataFrames: Uint8Array[];
+    trailers: Headers;
+  }> {
     let rawBytes: Uint8Array;
     if (format === "text") {
       rawBytes = base64ToBytes(await res.text());
@@ -172,30 +199,95 @@ export function createGrpcWebClient(opts: GrpcWebClientOptions) {
       dataFrames.push(await maybeDecompress(framePart.payload, framePart.isCompressed, responseEncoding));
     }
 
-    // Some gateways may also put grpc-status on HTTP headers for errors.
-    if (!trailers.has("grpc-status") && !trailers.has("Grpc-Status")) {
-      const hs = res.headers.get("Grpc-Status") ?? res.headers.get("grpc-status");
-      if (hs != null) trailers.set("grpc-status", hs);
-      const hm = res.headers.get("Grpc-Message") ?? res.headers.get("grpc-message");
-      if (hm != null) trailers.set("grpc-message", hm);
-    }
-
-    if (!res.ok && dataFrames.length === 0) {
-      const st = trailerStatus(trailers);
-      throw new GatewayError({
-        code: st.code || GrpcCode.Unknown,
-        message: st.message || res.statusText,
-        httpStatus: res.status,
-        trailers,
-      });
-    }
-
-    return { dataFrames, headers: res.headers, trailers };
+    mergeHttpStatusTrailers(res, trailers);
+    return { dataFrames, trailers };
   }
 
-  return {
+  async function* iterateLiveFrames(res: Response): AsyncGenerator<GrpcWebStreamEvent> {
+    const responseEncoding = res.headers.get("Grpc-Encoding") ?? res.headers.get("grpc-encoding");
+    const frameReader = new GrpcWebFrameReader();
+    const b64 = format === "text" ? new Base64ByteDecoder() : null;
+    let trailers = new Headers();
+    let sawTrailer = false;
+
+    async function emit(frames: GrpcWebFrame[]): Promise<GrpcWebStreamEvent[]> {
+      const events: GrpcWebStreamEvent[] = [];
+      for (const framePart of frames) {
+        if (framePart.isTrailer) {
+          trailers = parseTrailerHeaders(framePart.payload);
+          sawTrailer = true;
+          events.push({ type: "trailer", trailers });
+          continue;
+        }
+        const message = await maybeDecompress(framePart.payload, framePart.isCompressed, responseEncoding);
+        events.push({ type: "message", message });
+      }
+      return events;
+    }
+
+    if (!res.body) {
+      // Fallback: no streaming body (some test mocks).
+      const buffered = await consumeBodyBuffered(res);
+      for (const message of buffered.dataFrames) {
+        yield { type: "message", message };
+      }
+      yield { type: "trailer", trailers: buffered.trailers };
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const textDecoder = format === "text" ? new TextDecoder() : null;
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (!value || value.length === 0) continue;
+
+        let bytes: Uint8Array;
+        if (b64 && textDecoder) {
+          bytes = b64.push(textDecoder.decode(value, { stream: true }));
+        } else {
+          bytes = value;
+        }
+        for (const ev of await emit(frameReader.push(bytes))) {
+          yield ev;
+        }
+      }
+
+      if (b64) {
+        const tail = b64.finish();
+        if (tail.length) {
+          for (const ev of await emit(frameReader.push(tail))) {
+            yield ev;
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    if (!sawTrailer) {
+      mergeHttpStatusTrailers(res, trailers);
+      yield { type: "trailer", trailers };
+    }
+  }
+
+  const api = {
     async unary(fullMethod: string, requestMessage: Uint8Array, callOpts?: GrpcWebCallOptions): Promise<GrpcWebUnaryResult> {
-      const { dataFrames, headers, trailers } = await call(fullMethod, requestMessage, callOpts);
+      const res = await prepareRequest(fullMethod, requestMessage, callOpts);
+      const { dataFrames, trailers } = await consumeBodyBuffered(res);
+
+      if (!res.ok && dataFrames.length === 0) {
+        const st = trailerStatus(trailers);
+        throw new GatewayError({
+          code: st.code || GrpcCode.Unknown,
+          message: st.message || res.statusText,
+          httpStatus: res.status,
+          trailers,
+        });
+      }
+
       const st = trailerStatus(trailers);
       if (st.code !== GrpcCode.OK) {
         throw new GatewayError({
@@ -213,36 +305,88 @@ export function createGrpcWebClient(opts: GrpcWebClientOptions) {
       }
       return {
         message: dataFrames[0]!,
-        headers,
+        headers: res.headers,
         trailers,
         grpcStatus: st.code,
         grpcMessage: st.message,
       };
     },
 
+    /**
+     * Live server-stream: yields messages as HTTP chunks arrive (pub/sub style).
+     * First event is always `{ type: "headers" }`.
+     */
+    async *openServerStream(
+      fullMethod: string,
+      requestMessage: Uint8Array,
+      callOpts?: GrpcWebCallOptions,
+    ): AsyncGenerator<
+      | { type: "headers"; headers: Headers }
+      | GrpcWebStreamEvent
+    > {
+      const res = await prepareRequest(fullMethod, requestMessage, callOpts);
+      yield { type: "headers", headers: res.headers };
+
+      if (!res.ok) {
+        const { dataFrames, trailers } = await consumeBodyBuffered(res);
+        if (dataFrames.length === 0) {
+          const st = trailerStatus(trailers);
+          throw new GatewayError({
+            code: st.code || GrpcCode.Unknown,
+            message: st.message || res.statusText,
+            httpStatus: res.status,
+            trailers,
+          });
+        }
+      }
+
+      for await (const ev of iterateLiveFrames(res)) {
+        yield ev;
+      }
+    },
+
+    /**
+     * Buffered server-stream (waits until the stream completes). Prefer
+     * {@link openServerStream} / protobuf-ts transport for live delivery.
+     */
     async serverStream(
       fullMethod: string,
       requestMessage: Uint8Array,
       callOpts?: GrpcWebCallOptions,
     ): Promise<GrpcWebStreamResult> {
-      const { dataFrames, headers, trailers } = await call(fullMethod, requestMessage, callOpts);
-      const st = trailerStatus(trailers);
-      if (st.code !== GrpcCode.OK) {
+      const messages: Uint8Array[] = [];
+      let headers = new Headers();
+      let trailers = new Headers();
+      let grpcStatus: number = GrpcCode.OK;
+      let grpcMessage = "";
+
+      for await (const ev of api.openServerStream(fullMethod, requestMessage, callOpts)) {
+        if (ev.type === "headers") {
+          headers = ev.headers;
+          continue;
+        }
+        if (ev.type === "message") {
+          messages.push(ev.message);
+          continue;
+        }
+        trailers = ev.trailers;
+        const st = trailerStatus(trailers);
+        grpcStatus = st.code;
+        grpcMessage = st.message;
+      }
+
+      if (grpcStatus !== GrpcCode.OK) {
         throw new GatewayError({
-          code: st.code,
-          message: st.message,
+          code: grpcStatus,
+          message: grpcMessage,
           trailers,
         });
       }
-      return {
-        messages: dataFrames,
-        headers,
-        trailers,
-        grpcStatus: st.code,
-        grpcMessage: st.message,
-      };
+      return { messages, headers, trailers, grpcStatus, grpcMessage };
     },
   };
+
+  return api;
 }
 
 export type GrpcWebClient = ReturnType<typeof createGrpcWebClient>;
