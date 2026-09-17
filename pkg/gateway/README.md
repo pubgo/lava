@@ -157,9 +157,10 @@ curl -X POST http://localhost:8080/v1/users \
 
 ## 示例
 
-- [gRPC Web 示例](../../internal/examples/grpcweb/) - HTTP/gRPC-Web 前后端示例（含 `UseRPCMiddleware`）
+- [gRPC Web 示例](../../internal/examples/grpcweb/) - HTTP/gRPC-Web；前端用 [`@pubgo/lava-gateway-client`](../../sdk/js/gateway-client/)
 - [多协议示例](../../internal/examples/grpcwebsocket/) - `NewGatewaySurface`：HTTP/gRPC-Web(:8080)、WebSocket(:8081)、原生 gRPC(:50051)
   - `internal/examples/grpcwebsocket/verify/` 自动化验证（HTTP/JSON、gRPC-Web trailer/gzip、WS、native）
+- [JS SDK](../../sdk/js/gateway-client/) - 可对外使用的 HTTP/JSON + gRPC-Web 客户端（`@pubgo/lava-gateway-client`）
 
 ## 部署与 TLS
 

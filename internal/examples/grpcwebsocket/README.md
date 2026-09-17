@@ -34,5 +34,6 @@ go run ./internal/examples/grpcwebsocket/verify/
 
 ## Related
 
-- HTTP/gRPC-Web 精简示例：`internal/examples/grpcweb`
+- JS SDK（HTTP/JSON + gRPC-Web）：`sdk/js/gateway-client`（`@pubgo/lava-gateway-client`）
+- HTTP/gRPC-Web 精简示例：`internal/examples/grpcweb`（前端消费 SDK）
 - 设计文档：`pkg/gateway/docs/design-evolution.md`

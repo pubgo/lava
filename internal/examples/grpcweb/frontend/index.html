@@ -128,14 +128,14 @@
     </style>
 </head>
 <body>
-    <h1>🌐 gRPC Web 测试工具 <span class="badge badge-ts">protobuf-ts</span></h1>
+    <h1>lava gateway client 示例 <span class="badge badge-ts">@pubgo/lava-gateway-client</span></h1>
     
     <div class="info">
-        <strong>说明：</strong> 本页面使用 <code>@protobuf-ts/grpcweb-transport</code> 实现 gRPC Web 调用。
+        <strong>说明：</strong> 本页面通过可对外发布的 SDK <code>@pubgo/lava-gateway-client</code> 调用 lava gateway。
         <br><br>
-        <strong>HTTP/JSON 模式：</strong> 使用 <code>application/json</code> Content-Type，通过 REST API 调用
+        <strong>HTTP/JSON：</strong> <code>createHttpJsonClient</code> → REST（<code>google.api.http</code>）
         <br>
-        <strong>gRPC Web 模式：</strong> 使用 <code>application/grpc-web+proto</code> Content-Type，通过 protobuf-ts 客户端调用
+        <strong>gRPC-Web：</strong> <code>createGrpcWebTransport</code> + protobuf-ts 生成客户端（含 gzip accept）
     </div>
 
     <div class="container">
@@ -144,7 +144,7 @@
             <label for="helloName">名称:</label>
             <input type="text" id="helloName" placeholder="输入名称" value="World">
             <button class="btn-json" id="helloJsonBtn">发送 HTTP/JSON 请求</button>
-            <button class="btn-grpcweb" id="helloGrpcBtn">发送 gRPC Web 请求 (protobuf-ts)</button>
+            <button class="btn-grpcweb" id="helloGrpcBtn">发送 gRPC-Web 请求 (SDK transport)</button>
             <div id="helloResult" class="result">等待测试...</div>
         </div>
         
@@ -153,7 +153,7 @@
             <label for="goodbyeName">名称:</label>
             <input type="text" id="goodbyeName" placeholder="输入名称" value="Friend">
             <button class="btn-json" id="goodbyeJsonBtn">发送 HTTP/JSON 请求</button>
-            <button class="btn-grpcweb" id="goodbyeGrpcBtn">发送 gRPC Web 请求 (protobuf-ts)</button>
+            <button class="btn-grpcweb" id="goodbyeGrpcBtn">发送 gRPC-Web 请求 (SDK transport)</button>
             <div id="goodbyeResult" class="result">等待测试...</div>
         </div>
 
