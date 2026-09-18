@@ -16,6 +16,50 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+func TestFiberWebWriter_TrailerFrameUsesLowercaseFieldNames(t *testing.T) {
+	var buf bytes.Buffer
+	w := &fiberWebWriter{
+		typ:              grpcWeb,
+		enc:              "proto",
+		resp:             &buf,
+		headersCommitted: true,
+	}
+	w.addTrailers(metadata.Pairs("x-stream", "live", "grpc-message", "done"))
+	w.markErrorTrailer(codes.NotFound, "missing")
+	w.flushWithTrailer()
+
+	raw := buf.Bytes()
+	if len(raw) < 5 || raw[0]&0x80 == 0 {
+		t.Fatalf("want a trailer frame, got %q", raw)
+	}
+	n := int(binary.BigEndian.Uint32(raw[1:5]))
+	block := string(raw[5 : 5+n])
+
+	seen := make(map[string]int)
+	for _, line := range strings.Split(strings.TrimRight(block, "\r\n"), "\r\n") {
+		k, _, ok := strings.Cut(line, ":")
+		if !ok {
+			t.Fatalf("malformed trailer line %q in %q", line, block)
+		}
+		if k != strings.TrimSpace(k) || k != strings.ToLower(k) {
+			t.Fatalf("trailer field name %q must be lowercase, grpc-web parses trailer keys case-sensitively: %q", k, block)
+		}
+		seen[k]++
+	}
+	for _, k := range []string{"grpc-status", "grpc-message"} {
+		if seen[k] != 1 {
+			t.Fatalf("%s emitted %d times, want 1: %q", k, seen[k], block)
+		}
+	}
+	// The default-status fallback must not clobber the error code.
+	if !strings.Contains(block, "grpc-status: 5") {
+		t.Fatalf("want grpc-status: 5 (NotFound), got %q", block)
+	}
+	if seen["x-stream"] != 1 {
+		t.Fatalf("x-stream emitted %d times, want 1: %q", seen["x-stream"], block)
+	}
+}
+
 func TestApplyGRPCWebMetadata_AllowsGRPCStatus(t *testing.T) {
 	app := fiber.New()
 	fctx := &fasthttp.RequestCtx{}

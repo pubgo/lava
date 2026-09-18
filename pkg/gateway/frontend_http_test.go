@@ -343,6 +343,29 @@ func TestHTTPFrontend_ServerStreamGRPCWebHeaderMetadataReachesClient(t *testing.
 	}
 }
 
+func TestHTTPFrontend_PreservesFiberErrorStatus(t *testing.T) {
+	// prepareGRPCWeb rejects a gRPC-Web request that also asks for a websocket
+	// upgrade with fiber.StatusUpgradeRequired; that status must survive to the wire.
+	mux := NewMux()
+	app := fiber.New()
+	app.All("/*", mux.Handler)
+
+	req := httptest.NewRequest(fiber.MethodPost, "/test.v1.StreamService/Watch", strings.NewReader("{}"))
+	req.Header.Set("Content-Type", "application/grpc-web+proto")
+	req.Header.Set("Upgrade", "websocket")
+
+	resp, err := app.Test(req, fiber.TestConfig{Timeout: 0})
+	if err != nil {
+		t.Fatalf("app.Test: %v", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != fiber.StatusUpgradeRequired {
+		t.Fatalf("status=%d want %d, body=%q", resp.StatusCode, fiber.StatusUpgradeRequired, body)
+	}
+}
+
 // newServerStreamMux registers a server-streaming method backed by `backend`.
 func newServerStreamMux(t *testing.T, backend Backend) *fiber.App {
 	t.Helper()

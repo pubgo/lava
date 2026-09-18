@@ -209,6 +209,13 @@ func (f *httpFrontend) writeHTTPError(ctx fiber.Ctx, ww *fiberWebWriter, err err
 	if err == nil {
 		return nil
 	}
+	// A fiber.Error carries an HTTP status the gRPC code space cannot express;
+	// status.Convert would flatten it to Unknown and answer 426 with a 500.
+	var fErr *fiber.Error
+	if errors.As(err, &fErr) {
+		return ctx.Status(fErr.Code).SendString(fErr.Message)
+	}
+
 	st := status.Convert(err)
 	if ww != nil {
 		ww.markErrorTrailer(st.Code(), st.Message())

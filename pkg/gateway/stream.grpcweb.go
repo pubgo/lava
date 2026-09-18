@@ -126,14 +126,22 @@ func (w *fiberWebWriter) Write(data []byte) (int, error) {
 }
 
 func (w *fiberWebWriter) writeTrailer() error {
+	// gRPC-Web clients parse the trailer block with case-sensitive field names,
+	// so every key is stored lowercase; http.Header.Set/Add/Get would canonicalize.
 	tr := make(http.Header)
+	setTrailer := func(k string, vals ...string) { tr[strings.ToLower(k)] = vals }
+	addTrailer := func(k, v string) {
+		k = strings.ToLower(k)
+		tr[k] = append(tr[k], v)
+	}
+
 	if w.fctx != nil && !w.headersCommitted {
 		for key, value := range w.fctx.Response.Header.All() {
 			k := string(key)
 			if !isGRPCWebTrailerHeader(k) {
 				continue
 			}
-			tr.Set(k, string(value))
+			setTrailer(k, string(value))
 		}
 	} else if w.ctx != nil {
 		//lint:ignore SA1019 VisitAll is the only available API in this fasthttp version.
@@ -142,7 +150,7 @@ func (w *fiberWebWriter) writeTrailer() error {
 			if !isGRPCWebTrailerHeader(k) {
 				continue
 			}
-			tr.Set(k, string(value))
+			setTrailer(k, string(value))
 		}
 	}
 	for k, vs := range w.extraTrailer {
@@ -150,16 +158,16 @@ func (w *fiberWebWriter) writeTrailer() error {
 			if v == "" {
 				continue
 			}
-			tr.Add(k, v)
+			addTrailer(k, v)
 		}
 	}
 	if w.errCode != nil {
-		tr.Set("grpc-status", strconv.FormatUint(uint64(*w.errCode), 10))
-		tr.Set("grpc-message", w.errMessage)
+		setTrailer("grpc-status", strconv.FormatUint(uint64(*w.errCode), 10))
+		setTrailer("grpc-message", w.errMessage)
 	}
 	// Add default grpc-status if not present
-	if tr.Get("grpc-status") == "" {
-		tr.Set("grpc-status", "0")
+	if v := tr["Grpc-Status"]; len(v) == 0 || v[0] == "" {
+		setTrailer("grpc-status", "0")
 	}
 	var buf bytes.Buffer
 	if err := tr.Write(&buf); err != nil {
