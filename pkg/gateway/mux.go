@@ -15,7 +15,6 @@ import (
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/samber/lo"
-	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
@@ -175,40 +174,6 @@ func applyResponseMetadata(ctx fiber.Ctx, md metadata.MD) {
 // grpc-* keys so fiberWebWriter can emit them as a gRPC-Web trailer frame.
 func applyGRPCWebMetadata(ctx fiber.Ctx, md metadata.MD) {
 	applyResponseMetadataOpts(ctx, md, true)
-}
-
-func applyFasthttpMetadata(fctx *fasthttp.RequestCtx, md metadata.MD, allowGRPCKeys bool) {
-	if fctx == nil || len(md) == 0 {
-		return
-	}
-	for k, v := range md {
-		kLower := strings.ToLower(k)
-		if isReservedHeader(kLower) && !isWhitelistedHeader(kLower) {
-			if !allowGRPCKeys || !strings.HasPrefix(kLower, "grpc-") {
-				continue
-			}
-		}
-		vals := make([]string, 0, len(v))
-		for _, item := range v {
-			if item != "" {
-				vals = append(vals, item)
-			}
-		}
-		if len(vals) == 0 {
-			continue
-		}
-		if strings.HasSuffix(kLower, binHdrSuffix) {
-			encoded := make([]string, len(vals))
-			for i, item := range vals {
-				encoded[i] = encodeBinHeader([]byte(item))
-			}
-			vals = encoded
-		}
-		fctx.Response.Header.Set(k, vals[0])
-		for i := 1; i < len(vals); i++ {
-			fctx.Response.Header.Add(k, vals[i])
-		}
-	}
 }
 
 func applyResponseMetadataOpts(ctx fiber.Ctx, md metadata.MD, allowGRPCKeys bool) {

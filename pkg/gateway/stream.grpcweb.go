@@ -51,12 +51,16 @@ type fiberWebWriter struct {
 	typ         string // grpcWeb or grpcWebText
 	enc         string // proto or json
 	wroteHeader bool
-	wroteResp   bool
 
 	// Trailer fields collected without mutating Response.Header after body writes.
 	errCode      *uint32
 	errMessage   string
 	extraTrailer http.Header
+
+	// headersCommitted marks a live server-stream writer: the response head is
+	// already serialized by fasthttp, so this writer may only emit the trailer
+	// frame and must neither set Content-Type nor read Response.Header.
+	headersCommitted bool
 }
 
 func newFiberWebWriter(ctx fiber.Ctx, typ, enc string) *fiberWebWriter {
@@ -101,6 +105,9 @@ func asHTTPFlusher(w io.Writer) http.Flusher {
 }
 
 func (w *fiberWebWriter) setContentType(v string) {
+	if w.headersCommitted {
+		return
+	}
 	if w.fctx != nil {
 		w.fctx.Response.Header.Set("Content-Type", v)
 		return
@@ -115,13 +122,12 @@ func (w *fiberWebWriter) Write(data []byte) (int, error) {
 		w.wroteHeader = true
 		w.setContentType(w.typ + "+" + w.enc)
 	}
-	w.wroteResp = true
 	return w.resp.Write(data)
 }
 
 func (w *fiberWebWriter) writeTrailer() error {
 	tr := make(http.Header)
-	if w.fctx != nil {
+	if w.fctx != nil && !w.headersCommitted {
 		for key, value := range w.fctx.Response.Header.All() {
 			k := string(key)
 			if !isGRPCWebTrailerHeader(k) {

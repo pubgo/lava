@@ -13,8 +13,8 @@ import (
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/log"
-	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
 	"github.com/pubgo/lava/v2/pkg/httputil"
@@ -123,12 +123,17 @@ func (f *httpFrontend) handleServerStream(
 		fctx.Response.Header.Set(fiber.HeaderContentType, "application/x-ndjson")
 	}
 
+	// Everything above decided the response head. From here fasthttp owns it:
+	// SendStreamWriter runs its callback on another goroutine.
+	stream.headersCommitted = true
+
 	return ctx.SendStreamWriter(func(bw *bufio.Writer) {
 		live := &bufioHTTPFlusher{w: bw}
 
 		var webWriter *fiberWebWriter
 		if isGRPCWeb {
 			webWriter = newFiberWebWriterTo(nil, fctx, webTyp, webEnc, live)
+			webWriter.headersCommitted = true
 			stream.writer = webWriter
 		} else {
 			stream.writer = live
@@ -142,44 +147,42 @@ func (f *httpFrontend) handleServerStream(
 				Msg("invoke failed")
 			if webWriter != nil {
 				st := status.Convert(err)
-				// Prefer writer-local status so we do not race fasthttp after body bytes.
+				// The status travels in the trailer frame: the HTTP status is already
+				// on the wire.
 				webWriter.markErrorTrailer(st.Code(), st.Message())
 				webWriter.flushWithTrailer()
 			} else {
-				writeNDJSONStreamError(bw, fctx, err, stream.sentHeader)
+				writeNDJSONStreamError(bw, err)
 			}
 			return
 		}
 
+		// stream.header also carries whatever the backend sent mid-stream through
+		// SendHeader/SetHeader, which can no longer become an HTTP header.
+		md := metadata.Join(header, stream.header, trailer, stream.trailer)
+
 		if webWriter != nil {
-			// Only apply headers if no body has been written yet; trailers go via the writer.
-			if !webWriter.wroteResp {
-				applyFasthttpMetadata(fctx, header, true)
-			}
-			webWriter.addTrailers(trailer)
-			webWriter.addTrailers(stream.trailer)
-			webWriter.ensureTrailer()
+			webWriter.addTrailers(md)
 			webWriter.flushWithTrailer()
 			return
 		}
 
-		// HTTP/JSON: response headers must be set before the first NDJSON line.
-		if !stream.sentHeader {
-			applyFasthttpMetadata(fctx, header, false)
-			applyFasthttpMetadata(fctx, trailer, false)
-			applyFasthttpMetadata(fctx, stream.trailer, false)
+		// NDJSON has no late-metadata channel, and the response head is committed.
+		if len(md) > 0 {
+			log.Debug().
+				Str("path", match.Operation).
+				Int("keys", len(md)).
+				Msg("dropped response metadata on NDJSON stream")
 		}
 		_ = bw.Flush()
 	})
 }
 
 // writeNDJSONStreamError emits a single JSON error object on the NDJSON stream so
-// clients do not observe a silent empty 200 body when Dispatch fails.
-func writeNDJSONStreamError(bw *bufio.Writer, fctx *fasthttp.RequestCtx, err error, headersSent bool) {
+// clients do not observe a silent empty 200 body when Dispatch fails. The HTTP
+// status is already on the wire, so the code travels in the payload.
+func writeNDJSONStreamError(bw *bufio.Writer, err error) {
 	st := status.Convert(err)
-	if !headersSent && fctx != nil {
-		fctx.Response.SetStatusCode(HTTPStatusFromCode(st.Code()))
-	}
 	payload, mErr := json.Marshal(map[string]any{
 		"code":    uint32(st.Code()),
 		"message": st.Message(),

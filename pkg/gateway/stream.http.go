@@ -23,6 +23,11 @@ import (
 	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 )
 
+// grpcMaxRecvMsgSize bounds a single inbound gRPC frame. It mirrors
+// core/registry.DefaultMaxMsgSize; a 4-byte length prefix is attacker-controlled,
+// so it must be checked before the frame buffer is allocated.
+const grpcMaxRecvMsgSize = 4 << 20
+
 type streamHTTP struct {
 	method     *methodWrapper
 	path       *routertree.MatchOperation
@@ -36,6 +41,11 @@ type streamHTTP struct {
 	trailer    metadata.MD
 	params     url.Values
 	sentHeader bool
+	// headersCommitted is set once the response head (status line + headers) has
+	// been handed to fasthttp for serialization. From then on the pooled
+	// *fasthttp.RequestCtx belongs to the connection goroutine, so a live stream
+	// writer must not mutate response headers or the status code.
+	headersCommitted bool
 	// recvDone is set after a successful RecvMsg so subsequent reads return EOF.
 	// HTTP/gRPC-Web request bodies are single-shot for unary and server-stream.
 	recvDone bool
@@ -52,6 +62,12 @@ type streamHTTP struct {
 var _ grpc.ServerStream = (*streamHTTP)(nil)
 
 func (s *streamHTTP) setResponseHeader(k, v string) {
+	// SetHeader/SendHeader already retain every value in s.header, which the
+	// frontend emits through the protocol's late-metadata channel once the HTTP
+	// headers are on the wire.
+	if s.headersCommitted {
+		return
+	}
 	if s.fctx != nil {
 		s.fctx.Response.Header.Set(k, v)
 		return
@@ -287,6 +303,11 @@ func (s *streamHTTP) RecvMsg(m any) error {
 					return status.Errorf(codes.InvalidArgument, "read grpc frame header: %v", err)
 				}
 				length := binary.BigEndian.Uint32(header[1:5])
+				if length > grpcMaxRecvMsgSize {
+					return status.Errorf(codes.InvalidArgument,
+						"invalid gRPC frame: message too large, expected at most %d bytes, got %d",
+						grpcMaxRecvMsgSize, length)
+				}
 				data := make([]byte, length)
 				if _, err := io.ReadFull(reader, data); err != nil {
 					return status.Errorf(codes.InvalidArgument, "read grpc frame body: %v", err)
