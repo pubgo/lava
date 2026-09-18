@@ -170,7 +170,9 @@ func (s *serviceImpl) init(
 	}
 	assert.If(mux.Err() != nil, "gateway mux registration failed: %v", mux.Err())
 
-	// One RPC middleware chain covers unary + all stream modes for local and proxy.
+	// One RPC middleware chain covers unary + all stream modes for local and proxy,
+	// for every protocol frontend. In-process clients built directly on Mux
+	// (NewXxxClient(mux)) call the Backend layer instead and skip this chain.
 	mux.UseRPCMiddleware(handlerRPCMiddle(srvMidMap))
 
 	// Outer grpc.Server only passthroughs; services are registered on Mux.

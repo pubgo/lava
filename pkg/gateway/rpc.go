@@ -13,6 +13,12 @@ type RPCHandler func(ctx context.Context) (header, trailer metadata.MD, err erro
 // RPCMiddleware wraps an entire gateway RPC (not just NewStream/Invoke).
 // Use this for cross-cutting logic that must observe the full stream lifetime
 // for both in-process and proxy backends.
+//
+// The chain runs at Mux.Dispatch, which every protocol frontend drives. It does
+// not run at Mux.Invoke / Mux.NewStream: those return as soon as the backend call
+// starts, so wrapping them would release deferred cleanup and any request-timeout
+// context.CancelFunc while the stream is still in flight. Cross-cuts that must also
+// cover clients built directly on Mux belong on UseBackend*Interceptor instead.
 type RPCMiddleware func(ctx context.Context, op *Operation, next RPCHandler) (header, trailer metadata.MD, err error)
 
 type rpcIncomingPayloadKey struct{}

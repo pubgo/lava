@@ -213,11 +213,18 @@ func isDuplicateHeaderError(err error) bool {
 		strings.Contains(msg, "header already sent")
 }
 
+// Invoke calls a registered method as a gRPC client, locally or through a proxy.
+//
+// This is the Backend call surface, below the RPC middleware chain. Install
+// cross-cuts that must also see clients built directly on Mux with
+// UseBackendUnaryInterceptor. See RPCMiddleware for why the chain stays at Dispatch.
 func (m *Mux) Invoke(ctx context.Context, method string, args, reply any, opts ...grpc.CallOption) error {
 	invoker := chainBackendUnary(m.backendUnaryInts, m.invokeBackend)
 	return invoker(ctx, method, args, reply, opts...)
 }
 
+// NewStream starts a client stream, locally or through a proxy. See Invoke for the
+// middleware boundary, and UseBackendStreamInterceptor for call-site cross-cuts.
 func (m *Mux) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
 	streamer := chainBackendStream(m.backendStreamInts, m.newBackendStream)
 	return streamer(ctx, desc, method, opts...)

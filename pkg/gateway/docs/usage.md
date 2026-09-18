@@ -331,6 +331,8 @@ func (s *userService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.
 - **`UseBackendUnaryInterceptor` / `UseBackendStreamInterceptor`**：包装 `Mux.Invoke` / `NewStream`，**本地与 `RegisterProxy` 都会经过**。调用边界横切挂这里。
 - **`SetUnaryInterceptor` / `SetStreamInterceptor`**：仅作用于 `RegisterService` 的进程内 handler（`inprocgrpc` server interceptor），兼容层；新横切优先 RPC / Backend 链（见 [design-evolution.md](design-evolution.md)）。
 
+> **直接以 Mux 当 gRPC client 的调用**（`pb.NewXxxClient(mux)`）只经过 Backend 链，**不经过** `UseRPCMiddleware`：RPC 中间件要在整段流结束后收尾，而 `Invoke`/`NewStream` 在流开始时就返回了。v2 把 lava 中间件挂在 inproc 通道上，因此这类调用也被覆盖；迁移时若依赖这一点，把横切改挂 `UseBackend*`（或让调用方走前端 / `DispatchFrontend`）。
+
 ## 最佳实践
 
 1. **使用 HTTP Rule 注解**：在 Protobuf 中定义路由，而不是手动注册
