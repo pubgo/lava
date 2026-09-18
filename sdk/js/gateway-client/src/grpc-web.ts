@@ -69,13 +69,21 @@ function mergeHeaders(...parts: Array<HeadersInit | undefined>): Headers {
   return out;
 }
 
+function decodeGrpcMessage(message: string): string {
+  try {
+    return decodeURIComponent(message.replace(/\+/g, " "));
+  } catch {
+    return message.replace(/\+/g, " ");
+  }
+}
+
 function trailerStatus(trailers: Headers): { code: number; message: string } {
   const raw = trailers.get("grpc-status") ?? trailers.get("Grpc-Status") ?? "0";
   const code = Number.parseInt(raw, 10);
   const message = trailers.get("grpc-message") ?? trailers.get("Grpc-Message") ?? "";
   return {
     code: Number.isFinite(code) ? code : GrpcCode.Unknown,
-    message: decodeURIComponent(message.replace(/\+/g, " ")),
+    message: decodeGrpcMessage(message),
   };
 }
 
@@ -328,6 +336,7 @@ export function createGrpcWebClient(opts: GrpcWebClientOptions) {
       yield { type: "headers", headers: res.headers };
 
       if (!res.ok) {
+        // Body can only be consumed once — never fall through to iterateLiveFrames.
         const { dataFrames, trailers } = await consumeBodyBuffered(res);
         if (dataFrames.length === 0) {
           const st = trailerStatus(trailers);
@@ -338,6 +347,11 @@ export function createGrpcWebClient(opts: GrpcWebClientOptions) {
             trailers,
           });
         }
+        for (const message of dataFrames) {
+          yield { type: "message", message };
+        }
+        yield { type: "trailer", trailers };
+        return;
       }
 
       for await (const ev of iterateLiveFrames(res)) {

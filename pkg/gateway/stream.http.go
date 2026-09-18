@@ -28,8 +28,8 @@ type streamHTTP struct {
 	path       *routertree.MatchOperation
 	handler    fiber.Ctx
 	fctx       *fasthttp.RequestCtx // preferred for live server-stream (Fiber ctx is pooled)
-	reqCT      string              // snapshot of request Content-Type
-	reqBody    []byte              // snapshot of request body for RecvMsg
+	reqCT      string               // snapshot of request Content-Type
+	reqBody    []byte               // snapshot of request body for RecvMsg
 	reqMethod  string
 	ctx        context.Context
 	header     metadata.MD
@@ -162,10 +162,7 @@ func (s *streamHTTP) SendMsg(m any) error {
 
 	reqName := msg.ProtoReflect().Descriptor().FullName()
 	rspInterceptor := s.method.srv.opts.responseInterceptors[reqName]
-	if rspInterceptor != nil {
-		if s.handler == nil {
-			return errors.New("response interceptor requires fiber handler")
-		}
+	if rspInterceptor != nil && s.handler != nil {
 		return errors.Wrapf(rspInterceptor(s.handler, msg), "failed to do rsp interceptor response data by %s", reqName)
 	}
 
@@ -258,10 +255,7 @@ func (s *streamHTTP) RecvMsg(m any) error {
 
 		reqName := msg.ProtoReflect().Descriptor().FullName()
 		reqInterceptor := s.method.srv.opts.requestInterceptors[reqName]
-		if reqInterceptor != nil {
-			if s.handler == nil {
-				return errors.New("request interceptor requires fiber handler")
-			}
+		if reqInterceptor != nil && s.handler != nil {
 			return errors.Wrapf(reqInterceptor(s.handler, msg), "failed to go req interceptor request data by %s", reqName)
 		}
 

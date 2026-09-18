@@ -6,10 +6,13 @@ import (
 	"encoding/binary"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/valyala/fasthttp"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -49,6 +52,11 @@ type fiberWebWriter struct {
 	enc         string // proto or json
 	wroteHeader bool
 	wroteResp   bool
+
+	// Trailer fields collected without mutating Response.Header after body writes.
+	errCode      *uint32
+	errMessage   string
+	extraTrailer http.Header
 }
 
 func newFiberWebWriter(ctx fiber.Ctx, typ, enc string) *fiberWebWriter {
@@ -131,6 +139,18 @@ func (w *fiberWebWriter) writeTrailer() error {
 			tr.Set(k, string(value))
 		}
 	}
+	for k, vs := range w.extraTrailer {
+		for _, v := range vs {
+			if v == "" {
+				continue
+			}
+			tr.Add(k, v)
+		}
+	}
+	if w.errCode != nil {
+		tr.Set("grpc-status", strconv.FormatUint(uint64(*w.errCode), 10))
+		tr.Set("grpc-message", w.errMessage)
+	}
 	// Add default grpc-status if not present
 	if tr.Get("grpc-status") == "" {
 		tr.Set("grpc-status", "0")
@@ -160,9 +180,39 @@ func isGRPCWebTrailerHeader(k string) bool {
 	}
 }
 
-// markErrorTrailer is kept for call-site clarity on the error path.
-// flushWithTrailer always emits a trailer frame.
-func (w *fiberWebWriter) markErrorTrailer() {}
+// markErrorTrailer records grpc-status / grpc-message for the trailer frame
+// without mutating Response.Header after body bytes may have been written.
+func (w *fiberWebWriter) markErrorTrailer(code codes.Code, msg string) {
+	c := uint32(code)
+	w.errCode = &c
+	w.errMessage = encodeGRPCMessage(msg)
+}
+
+// addTrailers queues trailing metadata for the gRPC-Web trailer frame.
+func (w *fiberWebWriter) addTrailers(md metadata.MD) {
+	if len(md) == 0 {
+		return
+	}
+	if w.extraTrailer == nil {
+		w.extraTrailer = make(http.Header)
+	}
+	for k, vals := range md {
+		kLower := strings.ToLower(k)
+		if isReservedHeader(kLower) && !isWhitelistedHeader(kLower) && !strings.HasPrefix(kLower, "grpc-") {
+			continue
+		}
+		for _, item := range vals {
+			if item == "" {
+				continue
+			}
+			if strings.HasSuffix(kLower, binHdrSuffix) {
+				w.extraTrailer.Add(k, encodeBinHeader([]byte(item)))
+				continue
+			}
+			w.extraTrailer.Add(k, item)
+		}
+	}
+}
 
 // ensureTrailer is kept for call-site clarity on the success path.
 // flushWithTrailer always emits a trailer frame.

@@ -133,3 +133,79 @@ describe("createGrpcWebClient binary format", () => {
     assert.deepEqual(res.message, payload);
   });
 });
+
+describe("createGrpcWebClient openServerStream", () => {
+  it("yields buffered frames when HTTP status is not ok (no double-read)", async () => {
+    const payload = new Uint8Array([1, 2, 3]);
+    const data = encodeFrame(payload);
+    const trailer = encodeFrame(new TextEncoder().encode("grpc-status: 0\r\n"), TRAILER_FLAG);
+    const body = new Uint8Array(data.length + trailer.length);
+    body.set(data, 0);
+    body.set(trailer, data.length);
+
+    const client = createGrpcWebClient({
+      baseUrl: "http://gateway.test",
+      format: "binary",
+      fetch: async () =>
+        new Response(body, {
+          status: 500,
+          headers: { "Content-Type": "application/grpc-web+proto" },
+        }),
+    });
+
+    const events = [];
+    for await (const ev of client.openServerStream("/svc/Watch", new Uint8Array([1]))) {
+      events.push(ev);
+    }
+    assert.equal(events[0]?.type, "headers");
+    assert.equal(events[1]?.type, "message");
+    assert.deepEqual(events[1].message, payload);
+    assert.equal(events[2]?.type, "trailer");
+  });
+
+  it("throws when non-ok response has no data frames", async () => {
+    const trailer = encodeFrame(new TextEncoder().encode("grpc-status: 3\r\ngrpc-message: bad%20name\r\n"), TRAILER_FLAG);
+    const client = createGrpcWebClient({
+      baseUrl: "http://gateway.test",
+      format: "binary",
+      fetch: async () =>
+        new Response(trailer, {
+          status: 400,
+          headers: { "Content-Type": "application/grpc-web+proto" },
+        }),
+    });
+
+    await assert.rejects(async () => {
+      for await (const _ of client.openServerStream("/svc/Watch", new Uint8Array())) {
+        /* drain */
+      }
+    }, (err) => {
+      assert.equal(err.code, GrpcCode.InvalidArgument);
+      assert.match(err.message, /bad name/);
+      return true;
+    });
+  });
+
+  it("tolerates invalid percent-encoding in grpc-message", async () => {
+    const trailer = encodeFrame(new TextEncoder().encode("grpc-status: 3\r\ngrpc-message: bad%\r\n"), TRAILER_FLAG);
+    const client = createGrpcWebClient({
+      baseUrl: "http://gateway.test",
+      format: "binary",
+      fetch: async () =>
+        new Response(trailer, {
+          status: 400,
+          headers: { "Content-Type": "application/grpc-web+proto" },
+        }),
+    });
+
+    await assert.rejects(async () => {
+      for await (const _ of client.openServerStream("/svc/Watch", new Uint8Array())) {
+        /* drain */
+      }
+    }, (err) => {
+      assert.equal(err.code, GrpcCode.InvalidArgument);
+      assert.match(err.message, /bad%/);
+      return true;
+    });
+  });
+});

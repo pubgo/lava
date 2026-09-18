@@ -7,13 +7,13 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/log"
+	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -116,6 +116,9 @@ func (f *httpFrontend) handleServerStream(
 
 	if isGRPCWeb {
 		fctx.Response.Header.Set("Content-Type", webTyp+"+"+webEnc)
+		// Negotiate compression while response headers are still mutable.
+		// SendStreamWriter may flush headers on the first body write.
+		stream.ensureResponseCompression()
 	} else {
 		fctx.Response.Header.Set(fiber.HeaderContentType, "application/x-ndjson")
 	}
@@ -139,30 +142,53 @@ func (f *httpFrontend) handleServerStream(
 				Msg("invoke failed")
 			if webWriter != nil {
 				st := status.Convert(err)
-				fctx.Response.Header.Set("Grpc-Status", strconv.FormatUint(uint64(st.Code()), 10))
-				fctx.Response.Header.Set("Grpc-Message", encodeGRPCMessage(st.Message()))
-				webWriter.markErrorTrailer()
+				// Prefer writer-local status so we do not race fasthttp after body bytes.
+				webWriter.markErrorTrailer(st.Code(), st.Message())
 				webWriter.flushWithTrailer()
 			} else {
-				_ = bw.Flush()
+				writeNDJSONStreamError(bw, fctx, err, stream.sentHeader)
 			}
 			return
 		}
 
 		if webWriter != nil {
-			applyFasthttpMetadata(fctx, header, true)
-			applyFasthttpMetadata(fctx, trailer, true)
-			applyFasthttpMetadata(fctx, stream.trailer, true)
+			// Only apply headers if no body has been written yet; trailers go via the writer.
+			if !webWriter.wroteResp {
+				applyFasthttpMetadata(fctx, header, true)
+			}
+			webWriter.addTrailers(trailer)
+			webWriter.addTrailers(stream.trailer)
 			webWriter.ensureTrailer()
 			webWriter.flushWithTrailer()
 			return
 		}
 
-		applyFasthttpMetadata(fctx, header, false)
-		applyFasthttpMetadata(fctx, trailer, false)
-		applyFasthttpMetadata(fctx, stream.trailer, false)
+		// HTTP/JSON: response headers must be set before the first NDJSON line.
+		if !stream.sentHeader {
+			applyFasthttpMetadata(fctx, header, false)
+			applyFasthttpMetadata(fctx, trailer, false)
+			applyFasthttpMetadata(fctx, stream.trailer, false)
+		}
 		_ = bw.Flush()
 	})
+}
+
+// writeNDJSONStreamError emits a single JSON error object on the NDJSON stream so
+// clients do not observe a silent empty 200 body when Dispatch fails.
+func writeNDJSONStreamError(bw *bufio.Writer, fctx *fasthttp.RequestCtx, err error, headersSent bool) {
+	st := status.Convert(err)
+	if !headersSent && fctx != nil {
+		fctx.Response.SetStatusCode(HTTPStatusFromCode(st.Code()))
+	}
+	payload, mErr := json.Marshal(map[string]any{
+		"code":    uint32(st.Code()),
+		"message": st.Message(),
+	})
+	if mErr == nil {
+		_, _ = bw.Write(payload)
+		_, _ = bw.Write([]byte("\n"))
+	}
+	_ = bw.Flush()
 }
 
 // bufioHTTPFlusher adapts *bufio.Writer to http.Flusher for per-message streaming.
@@ -182,9 +208,7 @@ func (f *httpFrontend) writeHTTPError(ctx fiber.Ctx, ww *fiberWebWriter, err err
 	}
 	st := status.Convert(err)
 	if ww != nil {
-		ctx.Response().Header.Set("Grpc-Status", strconv.FormatUint(uint64(st.Code()), 10))
-		ctx.Response().Header.Set("Grpc-Message", encodeGRPCMessage(st.Message()))
-		ww.markErrorTrailer()
+		ww.markErrorTrailer(st.Code(), st.Message())
 		return nil
 	}
 

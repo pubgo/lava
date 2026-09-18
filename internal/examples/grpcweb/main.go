@@ -61,7 +61,7 @@ func (s *greeterService) SayHello(ctx context.Context, req *greeterpb.HelloReque
 		"x-demo-echo", firstMD(in, "x-demo-token"),
 		"x-demo-method", "SayHello",
 	))
-	grpc.SetTrailer(ctx, metadata.Pairs("x-demo-trailer", "unary-done"))
+	_ = grpc.SetTrailer(ctx, metadata.Pairs("x-demo-trailer", "unary-done"))
 	return &greeterpb.HelloResponse{
 		Message:   "Hello, " + name + "!",
 		Timestamp: time.Now().Unix(),
@@ -78,7 +78,7 @@ func (s *greeterService) SayGoodbye(ctx context.Context, req *greeterpb.GoodbyeR
 		"x-demo-echo", firstMD(in, "x-demo-token"),
 		"x-demo-method", "SayGoodbye",
 	))
-	grpc.SetTrailer(ctx, metadata.Pairs("x-demo-trailer", "unary-done"))
+	_ = grpc.SetTrailer(ctx, metadata.Pairs("x-demo-trailer", "unary-done"))
 	return &greeterpb.GoodbyeResponse{
 		Message:   "Goodbye, " + name + "! See you next time.",
 		Timestamp: time.Now().Unix(),

@@ -1,6 +1,8 @@
 package gateway
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http/httptest"
@@ -106,6 +108,28 @@ func TestHTTPFrontend_MapsNotFound(t *testing.T) {
 	}
 	if codes.Code(payload.Code) != codes.NotFound {
 		t.Fatalf("want NotFound code, got %d", payload.Code)
+	}
+}
+
+func TestWriteNDJSONStreamError_EmitsJSONAndStatus(t *testing.T) {
+	var buf bytes.Buffer
+	bw := bufio.NewWriter(&buf)
+	fctx := &fasthttp.RequestCtx{}
+	writeNDJSONStreamError(bw, fctx, status.Error(codes.InvalidArgument, "bad id"), false)
+
+	if fctx.Response.StatusCode() != fiber.StatusBadRequest {
+		t.Fatalf("want HTTP 400, got %d", fctx.Response.StatusCode())
+	}
+	var payload struct {
+		Code    uint32 `json:"code"`
+		Message string `json:"message"`
+	}
+	line := strings.TrimSpace(buf.String())
+	if err := json.Unmarshal([]byte(line), &payload); err != nil {
+		t.Fatalf("json body: %v (%q)", err, line)
+	}
+	if codes.Code(payload.Code) != codes.InvalidArgument || payload.Message != "bad id" {
+		t.Fatalf("payload=%+v", payload)
 	}
 }
 

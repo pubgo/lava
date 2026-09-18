@@ -26,13 +26,21 @@ export type GrpcWebTransportOptions = GrpcWebClientOptions & RpcOptions & {
   defaultOptions?: RpcOptions;
 };
 
+function decodeGrpcMessage(message: string): string {
+  try {
+    return decodeURIComponent(message.replace(/\+/g, " "));
+  } catch {
+    return message.replace(/\+/g, " ");
+  }
+}
+
 function trailerStatusFromHeaders(trailers: Headers): { code: number; message: string } {
   const raw = trailers.get("grpc-status") ?? trailers.get("Grpc-Status") ?? "0";
   const code = Number.parseInt(raw, 10);
   const message = trailers.get("grpc-message") ?? trailers.get("Grpc-Message") ?? "";
   return {
     code: Number.isFinite(code) ? code : GrpcCode.Unknown,
-    message: decodeURIComponent(message.replace(/\+/g, " ")),
+    message: decodeGrpcMessage(message),
   };
 }
 

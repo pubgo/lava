@@ -11,6 +11,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/valyala/fasthttp"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -107,6 +108,46 @@ func TestFiberWebWriter_SuccessTrailerKeepsAppliedStatus(t *testing.T) {
 	}
 	if !strings.Contains(strings.ToLower(body), "grpc-message: done") {
 		t.Fatalf("trailer missing message: %q", body)
+	}
+}
+
+func TestFiberWebWriter_MarkErrorTrailerOverridesStatus(t *testing.T) {
+	var buf bytes.Buffer
+	w := &fiberWebWriter{
+		typ:  grpcWeb,
+		enc:  "proto",
+		resp: &buf,
+	}
+	w.markErrorTrailer(codes.InvalidArgument, "bad name")
+	w.flushWithTrailer()
+
+	if buf.Len() < 5 {
+		t.Fatalf("expected trailer frame, got %d bytes", buf.Len())
+	}
+	n := binary.BigEndian.Uint32(buf.Bytes()[1:5])
+	body := string(buf.Bytes()[5 : 5+n])
+	if !strings.Contains(strings.ToLower(body), "grpc-status: 3") {
+		t.Fatalf("trailer=%q, want grpc-status: 3", body)
+	}
+	if !strings.Contains(strings.ToLower(body), "grpc-message:") {
+		t.Fatalf("trailer missing message: %q", body)
+	}
+}
+
+func TestFiberWebWriter_AddTrailersInFrame(t *testing.T) {
+	var buf bytes.Buffer
+	w := &fiberWebWriter{
+		typ:  grpcWeb,
+		enc:  "proto",
+		resp: &buf,
+	}
+	w.addTrailers(metadata.Pairs("x-demo-trailer", "stream-done"))
+	w.flushWithTrailer()
+
+	n := binary.BigEndian.Uint32(buf.Bytes()[1:5])
+	body := string(buf.Bytes()[5 : 5+n])
+	if !strings.Contains(strings.ToLower(body), "x-demo-trailer: stream-done") {
+		t.Fatalf("trailer=%q, want x-demo-trailer", body)
 	}
 }
 
