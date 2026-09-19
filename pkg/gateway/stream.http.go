@@ -29,18 +29,24 @@ import (
 const grpcMaxRecvMsgSize = 4 << 20
 
 type streamHTTP struct {
-	method     *methodWrapper
-	path       *routertree.MatchOperation
-	handler    fiber.Ctx
-	fctx       *fasthttp.RequestCtx // preferred for live server-stream (Fiber ctx is pooled)
-	reqCT      string               // snapshot of request Content-Type
-	reqBody    []byte               // snapshot of request body for RecvMsg
-	reqMethod  string
-	ctx        context.Context
-	header     metadata.MD
-	trailer    metadata.MD
-	params     url.Values
-	sentHeader bool
+	method    *methodWrapper
+	path      *routertree.MatchOperation
+	handler   fiber.Ctx
+	fctx      *fasthttp.RequestCtx // preferred for live server-stream (Fiber ctx is pooled)
+	reqCT     string               // snapshot of request Content-Type
+	reqBody   []byte               // snapshot of request body for RecvMsg
+	reqMethod string
+	// reqGRPCEncoding / reqGRPCAcceptEncoding snapshot the inbound compression
+	// headers. Response negotiation may run from the stream-writer goroutine,
+	// after fasthttp owns the response and the pooled request is no longer ours
+	// to read.
+	reqGRPCEncoding       string
+	reqGRPCAcceptEncoding string
+	ctx                   context.Context
+	header                metadata.MD
+	trailer               metadata.MD
+	params                url.Values
+	sentHeader            bool
 	// headersCommitted is set once the response head (status line + headers) has
 	// been handed to fasthttp for serialization. From then on the pooled
 	// *fasthttp.RequestCtx belongs to the connection goroutine, so a live stream

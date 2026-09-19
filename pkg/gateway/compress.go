@@ -94,10 +94,7 @@ func (s *streamHTTP) ensureResponseCompression() {
 
 	s.setResponseHeader("Grpc-Accept-Encoding", s.supportedAcceptEncoding())
 
-	accept := s.requestHeaderPeek("Grpc-Accept-Encoding")
-	if accept == "" {
-		accept = s.requestHeaderPeek("grpc-accept-encoding")
-	}
+	accept := s.reqGRPCAcceptEncoding
 	if c, name := s.negotiateResponseCompressor(accept); c != nil {
 		s.respCompressor = c
 		s.respEncoding = name
@@ -105,7 +102,21 @@ func (s *streamHTTP) ensureResponseCompression() {
 	}
 }
 
-func (s *streamHTTP) requestHeaderPeek(key string) string {
+// snapshotRequestEncoding copies the inbound gRPC compression headers. Call it
+// while the handler goroutine still owns the request; fasthttp peeks are exact
+// byte matches once header normalization is disabled, so both spellings are kept.
+func (s *streamHTTP) snapshotRequestEncoding() {
+	s.reqGRPCEncoding = s.peekRequestHeader("Grpc-Encoding")
+	if s.reqGRPCEncoding == "" {
+		s.reqGRPCEncoding = s.peekRequestHeader("grpc-encoding")
+	}
+	s.reqGRPCAcceptEncoding = s.peekRequestHeader("Grpc-Accept-Encoding")
+	if s.reqGRPCAcceptEncoding == "" {
+		s.reqGRPCAcceptEncoding = s.peekRequestHeader("grpc-accept-encoding")
+	}
+}
+
+func (s *streamHTTP) peekRequestHeader(key string) string {
 	if s.fctx != nil {
 		return string(s.fctx.Request.Header.Peek(key))
 	}
@@ -153,11 +164,7 @@ func decompressMessage(c Compressor, data []byte) ([]byte, error) {
 }
 
 func (s *streamHTTP) requestEncoding() string {
-	enc := s.requestHeaderPeek("Grpc-Encoding")
-	if enc == "" {
-		enc = s.requestHeaderPeek("grpc-encoding")
-	}
-	return normalizeContentCoding(enc)
+	return normalizeContentCoding(s.reqGRPCEncoding)
 }
 
 func (s *streamHTTP) decodeGRPCFramePayload(flags byte, payload []byte) ([]byte, error) {

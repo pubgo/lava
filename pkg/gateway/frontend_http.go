@@ -343,6 +343,9 @@ func (f *httpFrontend) buildStream(
 		params:  params,
 		path:    match,
 	}
+	// Last chance to read the request headers: handleServerStream may still be
+	// negotiating compression from inside the stream-writer goroutine.
+	stream.snapshotRequestEncoding()
 	if writer != nil {
 		stream.writer = writer
 	}

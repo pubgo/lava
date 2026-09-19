@@ -52,6 +52,7 @@ func TestNegotiateResponseCompressor_PrefersGzip(t *testing.T) {
 func TestDecodeGRPCFramePayload_GzipRoundTrip(t *testing.T) {
 	s := testStreamHTTPWithGzip(t)
 	s.handler.Request().Header.Set("Grpc-Encoding", "gzip")
+	s.snapshotRequestEncoding()
 
 	msg := wrapperspb.String("hello-compression")
 	raw, err := proto.Marshal(msg)
@@ -84,6 +85,7 @@ func TestSendMsg_CompressesWhenClientAcceptsGzip(t *testing.T) {
 	s := testStreamHTTPWithGzip(t)
 	s.handler.Request().Header.SetContentType("application/grpc-web+proto")
 	s.handler.Request().Header.Set("Grpc-Accept-Encoding", "gzip")
+	s.snapshotRequestEncoding()
 
 	var buf bytes.Buffer
 	s.writer = &buf
