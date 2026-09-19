@@ -18,7 +18,7 @@ import {
   UnaryCall,
 } from "@protobuf-ts/runtime-rpc";
 
-import { parseBackendError, toRpcError } from "./errors.js";
+import { GatewayError, parseBackendError, toRpcError } from "./errors.js";
 
 export type JsonRpcTransportOptions = RpcOptions & {
   /**
@@ -44,14 +44,50 @@ function appendMeta(headers: Headers, meta: RpcOptions["meta"]) {
 }
 
 /**
+ * Reads a failed response body without assuming it is JSON. Some gateway
+ * rejections are plain text, and the text is the only reason the client gets.
+ */
+async function readBackendError(res: Response): Promise<GatewayError> {
+  const text = await res.text().catch(() => "");
+  let body: unknown = text;
+  if (text) {
+    try {
+      body = JSON.parse(text);
+    } catch {
+      body = text;
+    }
+  }
+  return parseBackendError(body, res.status);
+}
+
+/**
+ * Recognises the gateway's in-band NDJSON error envelope. The HTTP 200 is already
+ * committed when a stream fails, so the status travels as the final line:
+ * `{"error":{"code":<grpc code>,"message":<string>}}`.
+ */
+function streamErrorFromBody(value: unknown): GatewayError | undefined {
+  if (typeof value !== "object" || value === null) return undefined;
+  const envelope = (value as Record<string, unknown>).error;
+  if (typeof envelope !== "object" || envelope === null) return undefined;
+  const { code, message } = envelope as Record<string, unknown>;
+  if (typeof code !== "number") return undefined;
+  return new GatewayError({
+    code,
+    message: typeof message === "string" ? message : "",
+  });
+}
+
+/**
  * JSON-over-gRPC-full-method transport used by lava apps in development.
  *
  * - Request: `POST {baseUrl}/{package.Service}/{Method}` with `application/json` (protojson)
  * - Unary response: single JSON object
  * - Server-stream: NDJSON (`application/x-ndjson`)
- * - Errors: lava/errorpb `{ statusCode, code, name, message, details }` or `{ code, message }`
+ * - Errors: lava/errorpb `{ statusCode, code, name, message, details }`, the
+ *   gateway's `{ code, message }`, plain-text bodies, and — on a stream whose 200
+ *   was already committed — the final `{"error":{code,message}}` line
  *
- * This is the same shape as agentrun's `JsonFetchTransport`.
+ * Otherwise the same shape as agentrun's `JsonFetchTransport`.
  */
 export class JsonRpcTransport implements RpcTransport {
   private readonly defaultOptions: JsonRpcTransportOptions;
@@ -102,10 +138,7 @@ export class JsonRpcTransport implements RpcTransport {
         });
         defHeader.resolve(responseHeaders);
 
-        if (!res.ok) {
-          const json = await res.json().catch(() => ({}));
-          throw parseBackendError(json, res.status);
-        }
+        if (!res.ok) throw await readBackendError(res);
 
         return method.O.fromJson(await res.json(), opt.jsonOptions);
       })
@@ -174,10 +207,7 @@ export class JsonRpcTransport implements RpcTransport {
         });
         defHeader.resolve(responseHeaders);
 
-        if (!fetchResponse.ok) {
-          const json = await fetchResponse.json().catch(() => ({}));
-          throw parseBackendError(json, fetchResponse.status);
-        }
+        if (!fetchResponse.ok) throw await readBackendError(fetchResponse);
 
         if (!fetchResponse.body) {
           defStatus.resolve({ code: "OK", detail: "" });
@@ -190,6 +220,18 @@ export class JsonRpcTransport implements RpcTransport {
         const decoder = new TextDecoder();
         let pending = "";
 
+        const emitLine = (rawLine: string) => {
+          const line = rawLine.trim();
+          if (!line) return;
+          const json = JSON.parse(line);
+          // A failed stream ends with this line instead of a status the transport
+          // could read, so it must reject the stream rather than reach the caller as
+          // a message. Anything else the method's schema accepts stays data.
+          const failure = streamErrorFromBody(json);
+          if (failure) throw failure;
+          responses.notifyMessage(method.O.fromJson(json, opt.jsonOptions));
+        };
+
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -198,18 +240,10 @@ export class JsonRpcTransport implements RpcTransport {
           const lines = pending.split(/\r?\n/);
           pending = lines.pop() ?? "";
 
-          for (const rawLine of lines) {
-            const line = rawLine.trim();
-            if (!line) continue;
-            const json = JSON.parse(line);
-            responses.notifyMessage(method.O.fromJson(json, opt.jsonOptions));
-          }
+          for (const rawLine of lines) emitLine(rawLine);
         }
 
-        const tail = (pending + decoder.decode()).trim();
-        if (tail) {
-          responses.notifyMessage(method.O.fromJson(JSON.parse(tail), opt.jsonOptions));
-        }
+        emitLine(pending + decoder.decode());
 
         responses.notifyComplete();
         defStatus.resolve({ code: "OK", detail: "" });

@@ -198,11 +198,17 @@ func logDroppedNDJSONMetadata(operation string, mds ...metadata.MD) {
 // writeNDJSONStreamError emits a single JSON error object on the NDJSON stream so
 // clients do not observe a silent empty 200 body when Dispatch fails. The HTTP
 // status is already on the wire, so the code travels in the payload.
+//
+// It is wrapped in an "error" envelope: a bare {code, message} line is a valid
+// payload for a schemaless (Struct) stream, and only the envelope lets a client
+// tell failure from data.
 func writeNDJSONStreamError(bw *bufio.Writer, err error) {
 	st := status.Convert(err)
 	payload, mErr := json.Marshal(map[string]any{
-		"code":    uint32(st.Code()),
-		"message": st.Message(),
+		"error": map[string]any{
+			"code":    uint32(st.Code()),
+			"message": st.Message(),
+		},
 	})
 	if mErr == nil {
 		_, _ = bw.Write(payload)

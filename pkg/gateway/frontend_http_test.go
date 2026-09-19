@@ -116,20 +116,25 @@ func TestHTTPFrontend_MapsNotFound(t *testing.T) {
 }
 
 func TestWriteNDJSONStreamError_EmitsJSONErrorLine(t *testing.T) {
+	// The error travels in an envelope, not as a bare {code, message}: a
+	// schemaless stream (Struct payloads) may legitimately emit a line with those
+	// exact keys, and a client then cannot tell payload from failure.
 	var buf bytes.Buffer
 	bw := bufio.NewWriter(&buf)
 	writeNDJSONStreamError(bw, status.Error(codes.InvalidArgument, "bad id"))
 
 	var payload struct {
-		Code    uint32 `json:"code"`
-		Message string `json:"message"`
+		Error struct {
+			Code    uint32 `json:"code"`
+			Message string `json:"message"`
+		} `json:"error"`
 	}
 	line := strings.TrimSpace(buf.String())
 	if err := json.Unmarshal([]byte(line), &payload); err != nil {
 		t.Fatalf("json body: %v (%q)", err, line)
 	}
-	if codes.Code(payload.Code) != codes.InvalidArgument || payload.Message != "bad id" {
-		t.Fatalf("payload=%+v", payload)
+	if codes.Code(payload.Error.Code) != codes.InvalidArgument || payload.Error.Message != "bad id" {
+		t.Fatalf("payload=%+v line=%q", payload, line)
 	}
 }
 
@@ -461,14 +466,16 @@ func TestHTTPFrontend_ServerStreamNDJSONErrorStaysHTTPOk(t *testing.T) {
 	}
 
 	var payload struct {
-		Code    uint32 `json:"code"`
-		Message string `json:"message"`
+		Error struct {
+			Code    uint32 `json:"code"`
+			Message string `json:"message"`
+		} `json:"error"`
 	}
 	if err = json.Unmarshal(bytes.TrimSpace(body), &payload); err != nil {
 		t.Fatalf("want a JSON error line, got %q (%v)", body, err)
 	}
-	if codes.Code(payload.Code) != codes.Unimplemented {
-		t.Fatalf("code=%d want Unimplemented, payload=%+v", payload.Code, payload)
+	if codes.Code(payload.Error.Code) != codes.Unimplemented {
+		t.Fatalf("code=%d want Unimplemented, payload=%+v", payload.Error.Code, payload)
 	}
 }
 

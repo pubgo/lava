@@ -67,4 +67,18 @@ describe("encodeFrame / decodeFrames", () => {
     const frames = decodeFrames(new Uint8Array([0, 0, 0, 0, 10, 1, 2]));
     assert.equal(frames.length, 0);
   });
+
+  it("rejects a frame header above the gateway message cap", async () => {
+    // The gateway bounds an inbound frame at 4 MiB (grpcMaxRecvMsgSize) and errors
+    // past it. Without the same bound here, a bogus length prefix makes the live
+    // reader wait for bytes that can never arrive: no frame, no error.
+    const { GrpcWebFrameReader } = await import("../dist/frames.js");
+    const header = new Uint8Array(5);
+    new DataView(header.buffer).setUint32(1, 0x7fffffff, false);
+
+    assert.throws(() => decodeFrames(header), /4194304/);
+
+    const reader = new GrpcWebFrameReader();
+    assert.throws(() => reader.push(header), /4194304/);
+  });
 });

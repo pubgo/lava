@@ -148,20 +148,31 @@ export function rpcCodeFromBackendError(err: BackendError): string {
   return "INTERNAL";
 }
 
-export function parseBackendError(json: unknown, httpStatus?: number): GatewayError {
-  if (!isBackendError(json)) {
+export function parseBackendError(body: unknown, httpStatus?: number): GatewayError {
+  // The gateway answers some rejections (fiber errors, plain HTTP routes) as text
+  // rather than a JSON error body. That text is the only reason the client gets.
+  if (typeof body === "string" && body.trim() !== "") {
+    const mapped = httpStatus === undefined ? undefined : mapHttpStatusToRpcCode(httpStatus);
+    return new GatewayError({
+      code: statusCodeFromName(mapped ?? "INTERNAL"),
+      message: body,
+      httpStatus,
+    });
+  }
+
+  if (!isBackendError(body)) {
     return new GatewayError({
       code: GrpcCode.Unknown,
       message: "Unknown error format",
       httpStatus,
     });
   }
-  const name = rpcCodeFromBackendError(json);
+  const name = rpcCodeFromBackendError(body);
   return new GatewayError({
     code: statusCodeFromName(name),
-    message: json.message || json.name || "Unknown error",
-    httpStatus: httpStatus ?? json.statusCode,
-    backendError: json,
+    message: body.message || body.name || "Unknown error",
+    httpStatus,
+    backendError: body,
   });
 }
 

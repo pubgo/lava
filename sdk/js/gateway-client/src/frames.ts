@@ -1,6 +1,16 @@
 const TRAILER_FLAG = 0x80;
 const COMPRESSED_FLAG = 0x01;
 
+/** 1 flag byte + 4 big-endian length bytes. */
+const FRAME_HEADER_SIZE = 5;
+
+/**
+ * Mirrors `grpcMaxRecvMsgSize` in pkg/gateway/stream.http.go. A 4-byte length
+ * prefix is caller-controlled: without the same bound here, a bogus length makes
+ * the live reader wait forever for bytes that can never arrive.
+ */
+export const MAX_MESSAGE_SIZE = 4 << 20;
+
 export type GrpcWebFrame = {
   flags: number;
   payload: Uint8Array;
@@ -9,11 +19,11 @@ export type GrpcWebFrame = {
 };
 
 export function encodeFrame(payload: Uint8Array, flags = 0): Uint8Array {
-  const out = new Uint8Array(5 + payload.length);
+  const out = new Uint8Array(FRAME_HEADER_SIZE + payload.length);
   out[0] = flags & 0xff;
   const view = new DataView(out.buffer);
   view.setUint32(1, payload.length, false);
-  out.set(payload, 5);
+  out.set(payload, FRAME_HEADER_SIZE);
   return out;
 }
 
@@ -45,7 +55,7 @@ export class GrpcWebFrameReader {
 function extractFrames(buf: Uint8Array): { frames: GrpcWebFrame[]; rest: Uint8Array } {
   const frames: GrpcWebFrame[] = [];
   let off = 0;
-  while (off + 5 <= buf.length) {
+  while (off + FRAME_HEADER_SIZE <= buf.length) {
     const flags = buf[off]!;
     const length =
       ((buf[off + 1]! << 24) |
@@ -53,11 +63,16 @@ function extractFrames(buf: Uint8Array): { frames: GrpcWebFrame[]; rest: Uint8Ar
         (buf[off + 3]! << 8) |
         buf[off + 4]!) >>>
       0;
-    if (off + 5 + length > buf.length) {
+    if (length > MAX_MESSAGE_SIZE) {
+      throw new Error(
+        `grpc-web frame exceeds message limit: ${length} bytes > ${MAX_MESSAGE_SIZE}`,
+      );
+    }
+    if (off + FRAME_HEADER_SIZE + length > buf.length) {
       break;
     }
-    const payload = buf.subarray(off + 5, off + 5 + length);
-    off += 5 + length;
+    const payload = buf.subarray(off + FRAME_HEADER_SIZE, off + FRAME_HEADER_SIZE + length);
+    off += FRAME_HEADER_SIZE + length;
     frames.push({
       flags,
       payload,
