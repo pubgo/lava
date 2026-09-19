@@ -10,7 +10,6 @@ import (
 	"github.com/pubgo/funk/v2/proto/errorpb"
 	"github.com/pubgo/funk/v2/strutil"
 	"github.com/rs/xid"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
@@ -85,9 +84,7 @@ func handlerRPCMiddle(middlewares map[string][]lava.Middleware) gateway.RPCMiddl
 			payload:     gateway.IncomingPayload(ctx),
 			header:      reqHeader,
 			rspHeader:   rspHeader,
-		}
-		if op.StreamDesc != nil {
-			rpcReq.stream = stubStream{ctx: ctx}
+			streamed:    op.StreamDesc != nil,
 		}
 
 		reqId := strutil.FirstFnNotEmpty(
@@ -108,7 +105,7 @@ func handlerRPCMiddle(middlewares map[string][]lava.Middleware) gateway.RPCMiddl
 			if nextErr != nil {
 				return nil, nextErr
 			}
-			return &rpcResponse{header: rspHeader}, nil
+			return &rpcResponse{header: rspHeader, streamed: op.StreamDesc != nil}, nil
 		}
 
 		_, err = lava.Chain(middlewares[srvName]...).Middleware(wrapper)(ctx, rpcReq)
@@ -142,16 +139,3 @@ func handlerRPCMiddle(middlewares map[string][]lava.Middleware) gateway.RPCMiddl
 		return header, trailer, nil
 	}
 }
-
-// stubStream lets rpcRequest.Stream() report streaming RPCs without a real
-// ServerStream in the middleware layer (the pump runs inside next()).
-type stubStream struct{ ctx context.Context }
-
-func (s stubStream) SetHeader(metadata.MD) error  { return nil }
-func (s stubStream) SendHeader(metadata.MD) error { return nil }
-func (s stubStream) SetTrailer(metadata.MD)       {}
-func (s stubStream) Context() context.Context     { return s.ctx }
-func (s stubStream) SendMsg(any) error            { return nil }
-func (s stubStream) RecvMsg(any) error            { return nil }
-
-var _ grpc.ServerStream = stubStream{}

@@ -488,14 +488,11 @@ func (m *Mux) Dispatch(ctx context.Context, frontend FrontendStream, op *Operati
 // sees the payload and the full stream lifetime for all modes.
 func (m *Mux) DispatchFrontend(ctx context.Context, frontend FrontendStream, op *Operation, opts ...DispatchOption) (metadata.MD, metadata.MD, error) {
 	if op == nil {
-		return m.dispatcher.DispatchFrontend(ctx, m, frontend, op, opts...)
+		return nil, nil, errNilOperation
 	}
 
-	preReadRequest := op.StreamDesc == nil ||
-		(op.StreamDesc.ServerStreams && !op.StreamDesc.ClientStreams)
-
 	var in any
-	if preReadRequest {
+	if preReadsRequest(op) {
 		req := op.InputType.New().Interface()
 		if err := frontend.RecvMsg(req); err != nil {
 			return nil, nil, err

@@ -87,7 +87,6 @@ func (f *httpFrontend) handle(ctx fiber.Ctx) error {
 		applyGRPCWebMetadata(ctx, header)
 		applyGRPCWebMetadata(ctx, trailer)
 		applyGRPCWebMetadata(ctx, stream.trailer)
-		webWriter.ensureTrailer()
 	} else {
 		applyResponseMetadata(ctx, header)
 		applyResponseMetadata(ctx, trailer)

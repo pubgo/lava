@@ -64,7 +64,6 @@ type streamHTTP struct {
 
 	compNegotiated bool
 	respCompressor Compressor
-	respEncoding   string
 }
 
 var _ grpc.ServerStream = (*streamHTTP)(nil)

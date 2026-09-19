@@ -30,13 +30,10 @@ const (
 	grpcHeaderMessage = "grpc-message"
 )
 
-// isWebRequest checks for gRPC Web headers.
-func isWebRequest(r *http.Request) (typ, enc string, ok bool) {
-	ct := r.Header.Get("Content-Type")
-	return isWebRequestFromContentType(ct, r.Method)
-}
-
-// isWebRequestFromContentType checks for gRPC Web headers from content type string.
+// isWebRequestFromContentType reports whether a request belongs to the gRPC-Web
+// branch, splitting "application/grpc-web-text+json" into type and encoding.
+// Only grpc-web and grpc-web-text match: the "application/grpc-web-json" alias
+// is deliberately left to the plain HTTP/JSON branch.
 func isWebRequestFromContentType(ct, method string) (typ, enc string, ok bool) {
 	if !strings.HasPrefix(ct, grpcWeb) || method != http.MethodPost {
 		return "", "", false
@@ -242,10 +239,6 @@ func (w *fiberWebWriter) addTrailers(md metadata.MD) {
 		}
 	}
 }
-
-// ensureTrailer is kept for call-site clarity on the success path.
-// flushWithTrailer always emits a trailer frame.
-func (w *fiberWebWriter) ensureTrailer() {}
 
 func (w *fiberWebWriter) flushWithTrailer() {
 	// gRPC-Web clients always expect a trailer frame (success defaults to grpc-status=0).

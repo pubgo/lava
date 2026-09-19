@@ -68,6 +68,7 @@ Client ────────►├─ wsFrontend     (net/http)   四流
 - 宣称「Mux 中间件」时，默认指 **RPC / Backend 链**（本地与 proxy 一致）。  
 - inproc server 拦截器是实现细节/兼容层，不应当作「统一后端」的唯一挂点。  
 - Unary / server-stream 的请求体经 `IncomingPayload(ctx)` 对 RPC 中间件可见。预读发生在 RPC 链之前，因此请求体解码失败不会被任何 RPC 中间件观察到。  
+- RPC 链只经 header/trailer 与后端交互，**看不到响应消息体**：unary/stream 的响应由各模式的泵直接写给前端。需要改写响应体的横切只能落在后端 handler 里。  
 - RPC 链只挂在 `Dispatch`：`Invoke`/`NewStream` 在流开始即返回，包装它们会让中间件在流结束前收尾（`defer` 清理、`timeout` 的 `context.CancelFunc` 直接杀掉流）。直接以 Mux 为 client 的横切走 Backend 链。  
 
 ## 元数据契约（目标）

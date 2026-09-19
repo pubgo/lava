@@ -104,7 +104,6 @@ func (s *streamHTTP) ensureResponseCompression() {
 	accept := s.reqGRPCAcceptEncoding
 	if c, name := s.negotiateResponseCompressor(accept); c != nil {
 		s.respCompressor = c
-		s.respEncoding = name
 		s.setResponseHeader("Grpc-Encoding", name)
 	}
 }

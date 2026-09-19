@@ -36,11 +36,21 @@ func applyDispatchOptions(opts []DispatchOption) dispatchConfig {
 	return cfg
 }
 
-// DispatchFrontend drives a frontend grpc.ServerStream end-to-end. For unary and
-// server-streaming RPCs it pre-reads the request message via RecvMsg before
-// dispatching; client-streaming and bidi read inside the pump. This is the
-// shared entrypoint for frontends whose request surface is already a
-// grpc.ServerStream (native gRPC passthrough, websocket, zrpc).
+// errNilOperation is what both dispatch entrypoints report when the frontend
+// could not resolve an Operation to route to.
+var errNilOperation = errors.New("operation is nil")
+
+// preReadsRequest reports whether the request message is read before the pump
+// starts: unary and server-stream RPCs carry exactly one request, while
+// client-stream and bidi read theirs as they go.
+func preReadsRequest(op *Operation) bool {
+	return op.StreamDesc == nil || (op.StreamDesc.ServerStreams && !op.StreamDesc.ClientStreams)
+}
+
+// DispatchFrontend drives a frontend grpc.ServerStream end-to-end, pre-reading
+// the request per preReadsRequest. Frontends call Mux.DispatchFrontend, whose
+// Dispatch step runs the RPC middleware chain; this one skips the chain and is
+// used by the transparent-proxy backend, which must not re-enter it.
 func (d *Dispatcher) DispatchFrontend(
 	ctx context.Context,
 	backend Backend,
@@ -49,14 +59,11 @@ func (d *Dispatcher) DispatchFrontend(
 	opts ...DispatchOption,
 ) (header, trailer metadata.MD, err error) {
 	if op == nil {
-		return nil, nil, errors.New("operation is nil")
+		return nil, nil, errNilOperation
 	}
 
-	preReadRequest := op.StreamDesc == nil ||
-		(op.StreamDesc.ServerStreams && !op.StreamDesc.ClientStreams)
-
 	var in any
-	if preReadRequest {
+	if preReadsRequest(op) {
 		req := op.InputType.New().Interface()
 		if err = frontend.RecvMsg(req); err != nil {
 			return nil, nil, err
@@ -79,7 +86,7 @@ func (d *Dispatcher) Dispatch(
 	opts ...DispatchOption,
 ) (header, trailer metadata.MD, err error) {
 	if op == nil {
-		return nil, nil, errors.New("operation is nil")
+		return nil, nil, errNilOperation
 	}
 	cfg := applyDispatchOptions(opts)
 	if op.StreamDesc == nil {
@@ -110,15 +117,12 @@ func (d *Dispatcher) dispatchUnary(
 	op *Operation,
 	in any,
 ) (metadata.MD, metadata.MD, error) {
-	ctx, bag := withMDBag(ctx)
 	out := op.OutputType.New().Interface()
 	var header metadata.MD
 	var trailer metadata.MD
 	if err := backend.Invoke(ctx, op.FullMethod, in, out, grpc.Header(&header), grpc.Trailer(&trailer)); err != nil {
 		return nil, nil, err
 	}
-	header = mergeMD(header, bag.header)
-	trailer = mergeMD(trailer, bag.trailer)
 	if err := frontend.SendMsg(out); err != nil {
 		return header, trailer, errors.WrapCaller(err)
 	}
@@ -132,7 +136,6 @@ func (d *Dispatcher) dispatchServerStream(
 	op *Operation,
 	in any,
 ) error {
-	ctx, bag := withMDBag(ctx)
 	localStream, err := backend.NewStream(ctx, op.StreamDesc, op.FullMethod)
 	if err != nil {
 		return errors.WrapCaller(err)
@@ -162,7 +165,6 @@ func (d *Dispatcher) dispatchServerStream(
 
 		if !headerSent {
 			hdr, _ := localStream.Header()
-			hdr = mergeMD(hdr, bag.header)
 			if sendErr := frontend.SendHeader(hdr); sendErr != nil {
 				if !isDuplicateHeaderError(sendErr) {
 					return errors.WrapCaller(sendErr)
@@ -178,7 +180,6 @@ func (d *Dispatcher) dispatchServerStream(
 
 	if !headerSent {
 		hdr, _ := localStream.Header()
-		hdr = mergeMD(hdr, bag.header)
 		if sendErr := frontend.SendHeader(hdr); sendErr != nil {
 			if !isDuplicateHeaderError(sendErr) {
 				return errors.WrapCaller(sendErr)
@@ -186,7 +187,7 @@ func (d *Dispatcher) dispatchServerStream(
 		}
 	}
 
-	frontend.SetTrailer(mergeMD(localStream.Trailer(), bag.trailer))
+	frontend.SetTrailer(localStream.Trailer())
 	return nil
 }
 
@@ -196,7 +197,6 @@ func (d *Dispatcher) dispatchClientStream(
 	frontend FrontendStream,
 	op *Operation,
 ) error {
-	ctx, bag := withMDBag(ctx)
 	localStream, err := backend.NewStream(ctx, op.StreamDesc, op.FullMethod)
 	if err != nil {
 		return errors.WrapCaller(err)
@@ -224,8 +224,7 @@ func (d *Dispatcher) dispatchClientStream(
 		return errors.WrapCaller(err)
 	}
 
-	if hdr, headerErr := localStream.Header(); headerErr == nil || len(bag.header) > 0 {
-		hdr = mergeMD(hdr, bag.header)
+	if hdr, headerErr := localStream.Header(); headerErr == nil {
 		if sendErr := frontend.SendHeader(hdr); sendErr != nil && !isDuplicateHeaderError(sendErr) {
 			return errors.WrapCaller(sendErr)
 		}
@@ -235,7 +234,7 @@ func (d *Dispatcher) dispatchClientStream(
 		return errors.WrapCaller(err)
 	}
 
-	frontend.SetTrailer(mergeMD(localStream.Trailer(), bag.trailer))
+	frontend.SetTrailer(localStream.Trailer())
 	return nil
 }
 
@@ -246,7 +245,6 @@ func (d *Dispatcher) dispatchBidi(
 	op *Operation,
 	cfg dispatchConfig,
 ) error {
-	ctx, bag := withMDBag(ctx)
 	clientCtx, clientCancel := context.WithCancel(ctx)
 	defer clientCancel()
 
@@ -270,7 +268,7 @@ func (d *Dispatcher) dispatchBidi(
 				return errors.WrapCaller(s2cErr)
 			}
 		case c2sErr := <-c2sErrChan:
-			frontend.SetTrailer(mergeMD(localStream.Trailer(), bag.trailer))
+			frontend.SetTrailer(localStream.Trailer())
 			if c2sErr != io.EOF && c2sErr != nil {
 				return c2sErr
 			}

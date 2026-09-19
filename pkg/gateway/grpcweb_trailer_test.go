@@ -136,7 +136,6 @@ func TestFiberWebWriter_SuccessTrailerDefaultsStatusZero(t *testing.T) {
 		enc:  "proto",
 		resp: &buf,
 	}
-	w.ensureTrailer()
 	w.flushWithTrailer()
 
 	if buf.Len() < 5 {
