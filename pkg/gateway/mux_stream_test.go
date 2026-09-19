@@ -17,11 +17,12 @@ import (
 )
 
 type fakeClientConn struct {
-	stream grpc.ClientStream
+	stream    grpc.ClientStream
+	invokeErr error
 }
 
 func (f *fakeClientConn) Invoke(context.Context, string, any, any, ...grpc.CallOption) error {
-	return nil
+	return f.invokeErr
 }
 
 func (f *fakeClientConn) NewStream(context.Context, *grpc.StreamDesc, string, ...grpc.CallOption) (grpc.ClientStream, error) {
@@ -89,7 +90,7 @@ func (f *fakeClientStream) RecvMsg(m any) error {
 	return proto.Unmarshal(b, pm)
 }
 
-func TestInvokeResponseStream_DoesNotPrefetchHeaderBeforeFirstFrame(t *testing.T) {
+func TestDispatchServerStream_DoesNotPrefetchHeaderBeforeFirstFrame(t *testing.T) {
 	mux := NewMux()
 
 	inType, err := protoregistry.GlobalTypes.FindMessageByName("google.protobuf.Empty")
@@ -127,9 +128,13 @@ func TestInvokeResponseStream_DoesNotPrefetchHeaderBeforeFirstFrame(t *testing.T
 
 	stream := &streamHTTP{handler: ctx, ctx: context.Background(), method: method}
 
-	if err = mux.invokeResponseStream(stream, &emptypb.Empty{}); err != nil {
-		t.Fatalf("invokeResponseStream failed: %v", err)
+	header, trailer, err := mux.Dispatch(stream.Context(), stream, operationFromMethod(method), &emptypb.Empty{})
+	if err != nil {
+		t.Fatalf("Dispatch failed: %v", err)
 	}
+	applyResponseMetadata(stream.handler, header)
+	applyResponseMetadata(stream.handler, trailer)
+	applyResponseMetadata(stream.handler, stream.trailer)
 
 	if !fakeStream.headerCalled {
 		t.Fatal("expected header to be fetched eventually")
@@ -144,7 +149,7 @@ func TestInvokeResponseStream_DoesNotPrefetchHeaderBeforeFirstFrame(t *testing.T
 	}
 }
 
-func TestInvokeResponseStream_AllowsPreSentHeaderAndStreamsJSON(t *testing.T) {
+func TestDispatchServerStream_AllowsPreSentHeaderAndStreamsJSON(t *testing.T) {
 	mux := NewMux()
 
 	inType, err := protoregistry.GlobalTypes.FindMessageByName("google.protobuf.Empty")
@@ -191,9 +196,13 @@ func TestInvokeResponseStream_AllowsPreSentHeaderAndStreamsJSON(t *testing.T) {
 		t.Fatalf("preset SendHeader failed: %v", err)
 	}
 
-	if err = mux.invokeResponseStream(stream, &emptypb.Empty{}); err != nil {
-		t.Fatalf("invokeResponseStream failed: %v", err)
+	header, trailer, err := mux.Dispatch(stream.Context(), stream, operationFromMethod(method), &emptypb.Empty{})
+	if err != nil {
+		t.Fatalf("Dispatch failed: %v", err)
 	}
+	applyResponseMetadata(stream.handler, header)
+	applyResponseMetadata(stream.handler, trailer)
+	applyResponseMetadata(stream.handler, stream.trailer)
 
 	body := string(ctx.Response().Body())
 	if strings.Count(body, "\n") != 2 {

@@ -66,21 +66,21 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 		ct := strutil.FirstFnNotEmpty(func() string {
 			return grpcutil.HeaderGet(md, "content-type")
 		}, func() string {
-			return grpcutil.HeaderGet(md, "x-content-type")
+			return grpcutil.HeaderGet(md, grpcutil.MdContentType)
 		}, func() string {
 			return grpccconfig.DefaultContentType
 		})
 
-		delete(md, "x-content-type")
+		delete(md, grpcutil.MdContentType)
 
 		// get peer from context
 		if p, _ok := peer.FromContext(ctx); _ok {
-			md.Set("remote", p.Addr.String())
+			md.Set(grpcutil.MdRemote, p.Addr.String())
 		}
 
 		// timeout for server deadline
-		to := md.Get("timeout")
-		delete(md, "timeout")
+		to := md.Get(grpcutil.MdTimeout)
+		delete(md, grpcutil.MdTimeout)
 
 		// set the timeout if we have it
 		if len(to) != 0 {
@@ -146,21 +146,21 @@ func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientIntercept
 		ct := strutil.FirstFnNotEmpty(func() string {
 			return grpcutil.HeaderGet(md, "content-type")
 		}, func() string {
-			return grpcutil.HeaderGet(md, "x-content-type")
+			return grpcutil.HeaderGet(md, grpcutil.MdContentType)
 		}, func() string {
 			return grpccconfig.DefaultContentType
 		})
 
-		delete(md, "x-content-type")
+		delete(md, grpcutil.MdContentType)
 
 		// get peer from context
 		if p, ok := peer.FromContext(ctx); ok {
-			md.Set("remote", p.Addr.String())
+			md.Set(grpcutil.MdRemote, p.Addr.String())
 		}
 
 		// timeout for server deadline
-		to := md.Get("timeout")
-		delete(md, "timeout")
+		to := md.Get(grpcutil.MdTimeout)
+		delete(md, grpcutil.MdTimeout)
 
 		// set the timeout if we have it
 		if len(to) != 0 {

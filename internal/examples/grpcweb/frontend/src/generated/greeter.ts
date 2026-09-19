@@ -75,6 +75,36 @@ export interface GoodbyeResponse {
      */
     timestamp: bigint;
 }
+/**
+ * WatchHelloRequest 是 WatchHello 的请求消息
+ *
+ * @generated from protobuf message grpcweb.example.v1.WatchHelloRequest
+ */
+export interface WatchHelloRequest {
+    /**
+     * 用户名称
+     *
+     * @generated from protobuf field: string name = 1
+     */
+    name: string;
+    /**
+     * 推送消息条数，默认 3
+     *
+     * @generated from protobuf field: int32 count = 2
+     */
+    count: number;
+}
+/**
+ * ChatMessage 是 Chat 双向流的消息
+ *
+ * @generated from protobuf message grpcweb.example.v1.ChatMessage
+ */
+export interface ChatMessage {
+    /**
+     * @generated from protobuf field: string text = 1
+     */
+    text: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class HelloRequest$Type extends MessageType<HelloRequest> {
     constructor() {
@@ -279,10 +309,114 @@ class GoodbyeResponse$Type extends MessageType<GoodbyeResponse> {
  * @generated MessageType for protobuf message grpcweb.example.v1.GoodbyeResponse
  */
 export const GoodbyeResponse = new GoodbyeResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class WatchHelloRequest$Type extends MessageType<WatchHelloRequest> {
+    constructor() {
+        super("grpcweb.example.v1.WatchHelloRequest", [
+            { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "count", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<WatchHelloRequest>): WatchHelloRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.name = "";
+        message.count = 0;
+        if (value !== undefined)
+            reflectionMergePartial<WatchHelloRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WatchHelloRequest): WatchHelloRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string name */ 1:
+                    message.name = reader.string();
+                    break;
+                case /* int32 count */ 2:
+                    message.count = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: WatchHelloRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string name = 1; */
+        if (message.name !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.name);
+        /* int32 count = 2; */
+        if (message.count !== 0)
+            writer.tag(2, WireType.Varint).int32(message.count);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message grpcweb.example.v1.WatchHelloRequest
+ */
+export const WatchHelloRequest = new WatchHelloRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ChatMessage$Type extends MessageType<ChatMessage> {
+    constructor() {
+        super("grpcweb.example.v1.ChatMessage", [
+            { no: 1, name: "text", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ChatMessage>): ChatMessage {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.text = "";
+        if (value !== undefined)
+            reflectionMergePartial<ChatMessage>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ChatMessage): ChatMessage {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string text */ 1:
+                    message.text = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ChatMessage, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string text = 1; */
+        if (message.text !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.text);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message grpcweb.example.v1.ChatMessage
+ */
+export const ChatMessage = new ChatMessage$Type();
 /**
  * @generated ServiceType for protobuf service grpcweb.example.v1.GreeterService
  */
 export const GreeterService = new ServiceType("grpcweb.example.v1.GreeterService", [
     { name: "SayHello", options: { "google.api.http": { post: "/v1/greeter/hello", body: "*" } }, I: HelloRequest, O: HelloResponse },
-    { name: "SayGoodbye", options: { "google.api.http": { post: "/v1/greeter/goodbye", body: "*" } }, I: GoodbyeRequest, O: GoodbyeResponse }
+    { name: "SayGoodbye", options: { "google.api.http": { post: "/v1/greeter/goodbye", body: "*" } }, I: GoodbyeRequest, O: GoodbyeResponse },
+    { name: "WatchHello", serverStreaming: true, options: { "google.api.http": { post: "/v1/greeter/watch", body: "*" } }, I: WatchHelloRequest, O: HelloResponse },
+    { name: "Chat", serverStreaming: true, clientStreaming: true, options: { "google.api.http": { post: "/v1/greeter/chat", body: "*" } }, I: ChatMessage, O: ChatMessage }
 ]);

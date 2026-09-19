@@ -42,6 +42,11 @@ type methodWrapper struct {
 	// /{ServiceName}/{MethodName}
 	grpcFullMethod string
 	meta           *lavapbv1.RpcMeta
+
+	// op is the dispatch-facing view of this registration. Built once at
+	// register time; routerTree and frontends key into the registry by
+	// op.FullMethod rather than duplicating schema.
+	op *Operation
 }
 
 func grpcMethodHandlerWrapper(mth *methodWrapper, opts ...grpc.CallOption) MethodHandler {

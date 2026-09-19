@@ -113,7 +113,7 @@ HTTP 握手请求头会被转换为 gRPC 的 incoming metadata，供服务端通
 
 ### 关闭码
 
-调度成功后服务端以 `StatusNormalClosure (1000)` 关闭；调度出错时以 `StatusInternalError (1011)` 关闭。WebSocket 没有原生 trailer 概念，`grpc-status` 暂通过关闭码体现。
+调度成功后服务端以 `StatusNormalClosure (1000)` 关闭；调度出错时以 `StatusInternalError (1011)` 关闭。WebSocket 没有原生 trailer 概念，gRPC 状态由关闭帧承载：close code 由 gRPC code 映射，close reason 是 JSON `{"grpcStatus":N,"grpcMessage":"..."}`（见下方「实现说明」）。
 
 ## 配置选项
 
@@ -126,7 +126,7 @@ HTTP 握手请求头会被转换为 gRPC 的 incoming metadata，供服务端通
 ## 实现说明
 
 - `streamWS`（`stream.websocket.go`）实现 `grpc.ServerStream`，负责 WebSocket 帧的编解码与读写。
-- `wsFrontend`（`frontend_ws.go`）实现 `http.Handler`，负责握手、解析 Operation、构建 `streamWS` 并调用 `Dispatcher.DispatchFrontend`。
+- `wsFrontend`（`frontend_ws.go`）实现 `http.Handler`，负责握手、解析 Operation、构建 `streamWS` 并调用 `Mux.DispatchFrontend`（RPC 中间件生效的入口）。
 - 通过 REST 注解路径访问时，`streamWS` 会带上匹配到的 `MatchOperation`，因此 `body:"field"` / `response_body` 字段映射对 WebSocket 同样生效；直查 gRPC 全方法名时整条消息即请求/响应体。
 - 结束时通过 WebSocket Close 帧回传结构化 gRPC 状态：close code 由 gRPC code 映射，reason 为 JSON `{"grpcStatus":N,"grpcMessage":"..."}`，客户端可解析 `event.reason` 获取状态。
 

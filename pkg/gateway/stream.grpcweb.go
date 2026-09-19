@@ -6,26 +6,36 @@ import (
 	"encoding/binary"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/valyala/fasthttp"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 )
 
 const (
 	grpcBase    = "application/grpc"
 	grpcWeb     = "application/grpc-web"
 	grpcWebText = "application/grpc-web-text"
+	grpcWebJson = "application/grpc-web-json"
 )
 
-// isWebRequest checks for gRPC Web headers.
-func isWebRequest(r *http.Request) (typ, enc string, ok bool) {
-	ct := r.Header.Get("Content-Type")
-	return isWebRequestFromContentType(ct, r.Method)
-}
+// Header names a gRPC-Web client reads as the call's outcome. writeTrailer emits
+// them lowercase in the trailer frame.
+const (
+	grpcHeaderStatus  = "grpc-status"
+	grpcHeaderMessage = "grpc-message"
+)
 
-// isWebRequestFromContentType checks for gRPC Web headers from content type string.
+// isWebRequestFromContentType reports whether a request belongs to the gRPC-Web
+// branch, splitting "application/grpc-web-text+json" into type and encoding.
+// Only grpc-web and grpc-web-text match: the "application/grpc-web-json" alias
+// is deliberately left to the plain HTTP/JSON branch.
 func isWebRequestFromContentType(ct, method string) (typ, enc string, ok bool) {
-	if !strings.HasPrefix(ct, "application/grpc-web") || method != http.MethodPost {
+	if !strings.HasPrefix(ct, grpcWeb) || method != http.MethodPost {
 		return "", "", false
 	}
 	typ, enc, ok = strings.Cut(ct, "+")
@@ -37,70 +47,140 @@ func isWebRequestFromContentType(ct, method string) (typ, enc string, ok bool) {
 }
 
 // fiberWebWriter is a gRPC Web writer specifically for Fiber framework.
-// It writes headers directly to Fiber response headers.
+// It writes headers directly to Fiber / fasthttp response headers.
 type fiberWebWriter struct {
 	ctx         fiber.Ctx
+	fctx        *fasthttp.RequestCtx // used when Fiber ctx may be pooled (server-stream)
 	resp        io.Writer
+	respCloser  io.Closer // flushes streaming base64 encoder for grpc-web-text
 	flushWriter http.Flusher
 	typ         string // grpcWeb or grpcWebText
 	enc         string // proto or json
 	wroteHeader bool
-	wroteResp   bool
+
+	// Trailer fields collected without mutating Response.Header after body writes.
+	errCode      *uint32
+	errMessage   string
+	extraTrailer http.Header
+
+	// headersCommitted marks a live server-stream writer: the response head is
+	// already serialized by fasthttp, so this writer may only emit the trailer
+	// frame and must neither set Content-Type nor read Response.Header.
+	headersCommitted bool
 }
 
 func newFiberWebWriter(ctx fiber.Ctx, typ, enc string) *fiberWebWriter {
-	raw := ctx.Response().BodyWriter()
+	return newFiberWebWriterTo(ctx, ctx.RequestCtx(), typ, enc, ctx.Response().BodyWriter())
+}
+
+// newFiberWebWriterTo wires gRPC-Web framing onto an arbitrary writer (e.g. Fiber
+// SendStreamWriter's bufio.Writer) so server-streams can flush per message.
+func newFiberWebWriterTo(ctx fiber.Ctx, fctx *fasthttp.RequestCtx, typ, enc string, raw io.Writer) *fiberWebWriter {
 	resp := raw
+	var respCloser io.Closer
 	if typ == grpcWebText {
-		resp = &base64ChunkWriter{w: resp}
-	}
-	var flusher http.Flusher
-	if f, ok := raw.(http.Flusher); ok {
-		flusher = f
+		bw := newBase64ChunkWriter(raw)
+		resp = bw
+		respCloser = bw
 	}
 	return &fiberWebWriter{
 		ctx:         ctx,
+		fctx:        fctx,
 		typ:         typ,
 		enc:         enc,
 		resp:        resp,
-		flushWriter: flusher,
+		respCloser:  respCloser,
+		flushWriter: asHTTPFlusher(raw),
+	}
+}
+
+type flushErrAdapter struct {
+	f interface{ Flush() error }
+}
+
+func (a flushErrAdapter) Flush() { _ = a.f.Flush() }
+
+func asHTTPFlusher(w io.Writer) http.Flusher {
+	if f, ok := w.(http.Flusher); ok {
+		return f
+	}
+	if f, ok := w.(interface{ Flush() error }); ok {
+		return flushErrAdapter{f}
+	}
+	return nil
+}
+
+func (w *fiberWebWriter) setContentType(v string) {
+	if w.headersCommitted {
+		return
+	}
+	if w.fctx != nil {
+		w.fctx.Response.Header.Set("Content-Type", v)
+		return
+	}
+	if w.ctx != nil {
+		w.ctx.Set("Content-Type", v)
 	}
 }
 
 func (w *fiberWebWriter) Write(data []byte) (int, error) {
 	if !w.wroteHeader {
 		w.wroteHeader = true
-		// Set Content-Type header directly on Fiber response
-		w.ctx.Set("Content-Type", w.typ+"+"+w.enc)
+		w.setContentType(w.typ + "+" + w.enc)
 	}
-	w.wroteResp = true
 	return w.resp.Write(data)
 }
 
 func (w *fiberWebWriter) writeTrailer() error {
-	// Write trailers only if message has been sent.
-	if !w.wroteResp {
-		return nil
-	}
+	// gRPC-Web clients parse the trailer block with case-sensitive field names,
+	// so every key is stored lowercase; http.Header.Set/Add/Get would canonicalize.
 	tr := make(http.Header)
-	// Collect grpc-* headers for trailer
-	//lint:ignore SA1019 VisitAll is the only available API in this fasthttp version.
-	for key, value := range w.ctx.Response().Header.All() {
-		k := string(key)
-		if strings.HasPrefix(strings.ToLower(k), "grpc-") {
-			tr[strings.ToLower(k)] = []string{string(value)}
+	setTrailer := func(k string, vals ...string) { tr[strings.ToLower(k)] = vals }
+	addTrailer := func(k, v string) {
+		k = strings.ToLower(k)
+		tr[k] = append(tr[k], v)
+	}
+
+	if w.fctx != nil && !w.headersCommitted {
+		for key, value := range w.fctx.Response.Header.All() {
+			k := string(key)
+			if !isGRPCWebTrailerHeader(k) {
+				continue
+			}
+			setTrailer(k, string(value))
+		}
+	} else if w.ctx != nil {
+		//lint:ignore SA1019 VisitAll is the only available API in this fasthttp version.
+		for key, value := range w.ctx.Response().Header.All() {
+			k := string(key)
+			if !isGRPCWebTrailerHeader(k) {
+				continue
+			}
+			setTrailer(k, string(value))
 		}
 	}
+	for k, vs := range w.extraTrailer {
+		for _, v := range vs {
+			if v == "" {
+				continue
+			}
+			addTrailer(k, v)
+		}
+	}
+	if w.errCode != nil {
+		setTrailer(grpcHeaderStatus, strconv.FormatUint(uint64(*w.errCode), 10))
+		setTrailer(grpcHeaderMessage, w.errMessage)
+	}
 	// Add default grpc-status if not present
-	if tr.Get("grpc-status") == "" {
-		tr.Set("grpc-status", "0")
+	if v := tr[grpcHeaderStatus]; len(v) == 0 || v[0] == "" {
+		setTrailer(grpcHeaderStatus, "0")
 	}
 	var buf bytes.Buffer
 	if err := tr.Write(&buf); err != nil {
 		return err
 	}
-	head := []byte{1 << 7, 0, 0, 0, 0} // MSB=1 indicates this is a trailer data frame.
-	binary.BigEndian.PutUint32(head[1:5], uint32(buf.Len()))
+	head := []byte{grpcFrameTrailerFlag, 0, 0, 0, 0}
+	binary.BigEndian.PutUint32(head[1:grpcFrameHeaderSize], uint32(buf.Len()))
 	if _, err := w.resp.Write(head); err != nil {
 		return err
 	}
@@ -110,12 +190,79 @@ func (w *fiberWebWriter) writeTrailer() error {
 	return nil
 }
 
-func (w *fiberWebWriter) flushWithTrailer() {
-	// Write trailers only if message has been sent.
-	if w.wroteHeader || w.wroteResp {
-		if err := w.writeTrailer(); err != nil {
-			return // nothing
+// isGRPCWebTrailerHeader reports whether a response header belongs in the
+// gRPC-Web trailer block. It is not the same question as isReservedHeader: that
+// one filters transport-controlled names out of handler metadata, while this one
+// keeps grpc-status and grpc-message (the trailer's payload) and drops the rest
+// of the grpc-* negotiation, which travels as a header and would be wrong to
+// repeat.
+func isGRPCWebTrailerHeader(k string) bool {
+	k = strings.ToLower(k)
+	switch k {
+	case "grpc-encoding", "grpc-accept-encoding", "grpc-timeout", "grpc-message-type":
+		return false
+	default:
+		return strings.HasPrefix(k, "grpc-")
+	}
+}
+
+// markErrorTrailer records grpc-status / grpc-message for the trailer frame
+// without mutating Response.Header after body bytes may have been written.
+func (w *fiberWebWriter) markErrorTrailer(code codes.Code, msg string) {
+	c := uint32(code)
+	w.errCode = &c
+	w.errMessage = encodeGRPCMessage(msg)
+}
+
+// addTrailers queues trailing metadata for the gRPC-Web trailer frame.
+func (w *fiberWebWriter) addTrailers(md metadata.MD) {
+	if len(md) == 0 {
+		return
+	}
+	if w.extraTrailer == nil {
+		w.extraTrailer = make(http.Header)
+	}
+	for k, vals := range md {
+		kLower := strings.ToLower(k)
+		if isReservedHeader(kLower) && !isWhitelistedHeader(kLower) && !strings.HasPrefix(kLower, "grpc-") {
+			continue
 		}
+		for _, item := range vals {
+			if item == "" {
+				continue
+			}
+			if strings.HasSuffix(kLower, binHdrSuffix) {
+				w.extraTrailer.Add(k, encodeBinHeader([]byte(item)))
+				continue
+			}
+			w.extraTrailer.Add(k, item)
+		}
+	}
+}
+
+func (w *fiberWebWriter) flushWithTrailer() {
+	// gRPC-Web clients always expect a trailer frame (success defaults to grpc-status=0).
+	if !w.wroteHeader {
+		w.wroteHeader = true
+		w.setContentType(w.typ + "+" + w.enc)
+	}
+	if err := w.writeTrailer(); err != nil {
+		evt := log.Warn()
+		switch {
+		case w.fctx != nil:
+			evt = evt.Str("path", string(w.fctx.Request.URI().Path()))
+		case w.ctx != nil:
+			evt = evt.Str("path", string(w.ctx.Request().URI().Path()))
+		}
+		evt.Err(err).Msg("write grpc-web trailer frame failed")
+	}
+	// Must Close the streaming base64 encoder so residual bits and padding are flushed.
+	// Per-Write Encode() with padding would concatenate into invalid base64 for clients.
+	// Cleanup runs even after a failed trailer write: the response is already lost, but
+	// the encoder must not be left open.
+	if w.respCloser != nil {
+		_ = w.respCloser.Close()
+		w.respCloser = nil
 	}
 	w.Flush()
 }
@@ -126,20 +273,31 @@ func (w *fiberWebWriter) Flush() {
 	}
 }
 
+// base64ChunkWriter streams binary frames as one continuous base64 body.
+// Do not Encode each Write independently: padded chunks concatenated are not
+// valid base64 and break browser atob / StdEncoding.DecodeString.
 type base64ChunkWriter struct {
-	w io.Writer
+	enc io.WriteCloser
+}
+
+func newBase64ChunkWriter(w io.Writer) *base64ChunkWriter {
+	return &base64ChunkWriter{enc: base64.NewEncoder(base64.StdEncoding, w)}
 }
 
 func (b *base64ChunkWriter) Write(p []byte) (int, error) {
 	if len(p) == 0 {
 		return 0, nil
 	}
-	out := make([]byte, base64.StdEncoding.EncodedLen(len(p)))
-	base64.StdEncoding.Encode(out, p)
-	if _, err := b.w.Write(out); err != nil {
-		return 0, err
+	return b.enc.Write(p)
+}
+
+func (b *base64ChunkWriter) Close() error {
+	if b.enc == nil {
+		return nil
 	}
-	return len(p), nil
+	err := b.enc.Close()
+	b.enc = nil
+	return err
 }
 
 type readCloser struct {

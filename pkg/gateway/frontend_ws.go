@@ -9,7 +9,6 @@ import (
 	"github.com/coder/websocket"
 	"github.com/pubgo/funk/v2/log"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -42,9 +41,8 @@ func WithWSSubprotocols(subprotocols ...string) WSOption {
 }
 
 type wsFrontend struct {
-	mux        *Mux
-	dispatcher *Dispatcher
-	opts       wsOptions
+	mux  *Mux
+	opts wsOptions
 }
 
 // WebSocketHandler returns an http.Handler that bridges websocket clients to the
@@ -56,7 +54,7 @@ type wsFrontend struct {
 // and can be switched to protobuf (binary frames) via the "?encoding=proto"
 // query parameter or the "grpc-ws-proto" subprotocol.
 func (m *Mux) WebSocketHandler(opts ...WSOption) http.Handler {
-	f := &wsFrontend{mux: m, dispatcher: m.dispatcher}
+	f := &wsFrontend{mux: m}
 	for _, opt := range opts {
 		opt(&f.opts)
 	}
@@ -83,14 +81,11 @@ func (f *wsFrontend) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	enc := resolveWSEncoding(r, conn.Subprotocol())
 
-	md := metadata.MD{}
-	for k, vs := range r.Header {
-		md.Append(k, vs...)
-	}
+	reqCtx, _ := newIncomingContext(r.Context(), r.Header)
 
 	stream := &streamWS{
 		conn:     conn,
-		ctx:      metadata.NewIncomingContext(r.Context(), md),
+		ctx:      reqCtx,
 		method:   mth,
 		encoding: enc,
 		path:     match,
@@ -143,7 +138,7 @@ func wsCloseCode(code codes.Code) websocket.StatusCode {
 }
 
 func (f *wsFrontend) dispatch(stream *streamWS, op *Operation) error {
-	_, _, err := f.dispatcher.DispatchFrontend(stream.Context(), f.mux, stream, op)
+	_, _, err := f.mux.DispatchFrontend(stream.Context(), stream, op)
 	return err
 }
 
@@ -151,7 +146,7 @@ func (f *wsFrontend) resolveOperation(r *http.Request) (*Operation, *methodWrapp
 	path := r.URL.Path
 
 	// Direct gRPC full-method lookup: /pkg.Service/Method
-	if mth := f.mux.opts.handlers[path]; mth != nil {
+	if mth := f.mux.findMethod(path); mth != nil {
 		return operationFromMethod(mth), mth, nil, nil
 	}
 
@@ -159,7 +154,7 @@ func (f *wsFrontend) resolveOperation(r *http.Request) (*Operation, *methodWrapp
 	// WebSocket handshakes use GET, but google.api.http routes are often POST;
 	// try the request method first, then common HTTP verbs.
 	if match, values, ok := f.matchRESTPath(r); ok {
-		if mth := f.mux.opts.handlers[match.Operation]; mth != nil {
+		if mth := f.mux.findMethod(match.Operation); mth != nil {
 			return operationFromMethod(mth), mth, match, values
 		}
 	}
@@ -187,7 +182,7 @@ func (f *wsFrontend) matchRESTPath(r *http.Request) (*MatchOperation, url.Values
 		if err != nil {
 			continue
 		}
-		if f.mux.opts.handlers[match.Operation] == nil {
+		if f.mux.findMethod(match.Operation) == nil {
 			continue
 		}
 

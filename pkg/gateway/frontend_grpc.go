@@ -21,13 +21,13 @@ func (m *Mux) GRPCPassthroughStreamHandler() grpc.StreamHandler {
 			return status.Error(codes.Internal, "gateway: method not found in stream context")
 		}
 
-		mth := m.opts.handlers[fullMethod]
+		mth := m.findMethod(fullMethod)
 		if mth == nil {
 			return status.Errorf(codes.Unimplemented, "unknown method: %s", fullMethod)
 		}
 
 		op := operationFromMethod(mth)
-		header, trailer, err := m.dispatcher.DispatchFrontend(stream.Context(), m, stream, op)
+		header, trailer, err := m.DispatchFrontend(stream.Context(), stream, op)
 		if len(header) > 0 {
 			_ = stream.SetHeader(header)
 		}
