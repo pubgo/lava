@@ -26,6 +26,8 @@ import (
 // grpcMaxRecvMsgSize bounds a single inbound gRPC frame. It mirrors
 // core/registry.DefaultMaxMsgSize; a 4-byte length prefix is attacker-controlled,
 // so it must be checked before the frame buffer is allocated.
+// The JS client mirrors this bound as MAX_MESSAGE_SIZE in
+// sdk/js/gateway-client/src/frames.ts.
 const grpcMaxRecvMsgSize = 4 << 20
 
 type streamHTTP struct {
@@ -153,11 +155,11 @@ func (s *streamHTTP) Context() context.Context {
 func isGRPCContentType(ct string) bool {
 	ct = strings.ToLower(strings.TrimSpace(ct))
 	// Treat grpc-web-json alias as plain JSON transport for compatibility.
-	if strings.HasPrefix(ct, "application/grpc-web-json") {
+	if strings.HasPrefix(ct, grpcWebJson) {
 		return false
 	}
 
-	return strings.HasPrefix(ct, "application/grpc")
+	return strings.HasPrefix(ct, grpcBase)
 }
 
 func (s *streamHTTP) SendMsg(m any) error {
@@ -209,10 +211,10 @@ func (s *streamHTTP) SendMsg(m any) error {
 			flags = grpcFrameCompressed
 		}
 		// gRPC frame header: compression flag + length + message
-		frame := make([]byte, 5+len(b))
+		frame := make([]byte, grpcFrameHeaderSize+len(b))
 		frame[0] = flags
-		binary.BigEndian.PutUint32(frame[1:5], uint32(len(b)))
-		copy(frame[5:], b)
+		binary.BigEndian.PutUint32(frame[1:grpcFrameHeaderSize], uint32(len(b)))
+		copy(frame[grpcFrameHeaderSize:], b)
 		b = frame
 	} else {
 		b, err = codec.Marshal(msg)
@@ -304,11 +306,11 @@ func (s *streamHTTP) RecvMsg(m any) error {
 			reader := s.handler.Request().BodyStream()
 			if isGRPC {
 				// Read gRPC frame header: 1 byte flags + 4 bytes length
-				header := make([]byte, 5)
+				header := make([]byte, grpcFrameHeaderSize)
 				if _, err := io.ReadFull(reader, header); err != nil {
 					return status.Errorf(codes.InvalidArgument, "read grpc frame header: %v", err)
 				}
-				length := binary.BigEndian.Uint32(header[1:5])
+				length := binary.BigEndian.Uint32(header[1:grpcFrameHeaderSize])
 				if length > grpcMaxRecvMsgSize {
 					return status.Errorf(codes.InvalidArgument,
 						"invalid gRPC frame: message too large, expected at most %d bytes, got %d",
@@ -338,14 +340,14 @@ func (s *streamHTTP) RecvMsg(m any) error {
 		} else {
 			if isGRPC {
 				// gRPC frame: 1 byte flags + 4 bytes length + message
-				if len(body) < 5 {
+				if len(body) < grpcFrameHeaderSize {
 					return status.Error(codes.InvalidArgument, "invalid gRPC frame: too short")
 				}
-				length := binary.BigEndian.Uint32(body[1:5])
-				if len(body) < int(5+length) {
-					return status.Errorf(codes.InvalidArgument, "invalid gRPC frame: expected %d bytes, got %d", 5+length, len(body))
+				length := binary.BigEndian.Uint32(body[1:grpcFrameHeaderSize])
+				if len(body) < int(grpcFrameHeaderSize+length) {
+					return status.Errorf(codes.InvalidArgument, "invalid gRPC frame: expected %d bytes, got %d", grpcFrameHeaderSize+length, len(body))
 				}
-				data, err := s.decodeGRPCFramePayload(body[0], body[5:5+length])
+				data, err := s.decodeGRPCFramePayload(body[0], body[grpcFrameHeaderSize:grpcFrameHeaderSize+length])
 				if err != nil {
 					return err
 				}

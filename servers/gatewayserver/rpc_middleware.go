@@ -33,20 +33,20 @@ func handlerRPCMiddle(middlewares map[string][]lava.Middleware) gateway.RPCMiddl
 		reqMetadata := getIncomingMetadata(ctx).Copy()
 
 		ct := defaultContentType
-		if c := reqMetadata.Get("x-content-type"); len(c) != 0 && c[0] != "" {
+		if c := reqMetadata.Get(grpcutil.MdContentType); len(c) != 0 && c[0] != "" {
 			ct = c[0]
 		}
 		if c := reqMetadata.Get("content-type"); len(c) != 0 && c[0] != "" {
 			ct = c[0]
 		}
-		delete(reqMetadata, "x-content-type")
+		delete(reqMetadata, grpcutil.MdContentType)
 
 		if p, ok := peer.FromContext(ctx); ok {
-			reqMetadata.Set("remote", p.Addr.String())
+			reqMetadata.Set(grpcutil.MdRemote, p.Addr.String())
 		}
 
-		to := reqMetadata.Get("timeout")
-		delete(reqMetadata, "timeout")
+		to := reqMetadata.Get(grpcutil.MdTimeout)
+		delete(reqMetadata, grpcutil.MdTimeout)
 		if len(to) != 0 && to[0] != "" {
 			dur, parseErr := time.ParseDuration(to[0])
 			if parseErr != nil {
@@ -63,9 +63,9 @@ func handlerRPCMiddle(middlewares map[string][]lava.Middleware) gateway.RPCMiddl
 			}
 		}
 
-		url := op.FullMethod
-		if _url, ok := reqMetadata["url"]; ok {
-			url = _url[0]
+		url := grpcutil.HeaderGet(reqMetadata, grpcutil.MdURL)
+		if url == "" {
+			url = op.FullMethod
 		}
 
 		reqHeader := httputil.NewRequestHeader()

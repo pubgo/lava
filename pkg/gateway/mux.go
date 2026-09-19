@@ -70,8 +70,8 @@ var (
 	}
 
 	defaultCompressors = map[string]Compressor{
-		"gzip":     &internal.CompressorGzip{},
-		"identity": nil,
+		grpcEncodingGzip:     &internal.CompressorGzip{},
+		grpcEncodingIdentity: nil,
 	}
 )
 

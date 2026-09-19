@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   COMPRESSED_FLAG,
+  FRAME_HEADER_SIZE,
+  MAX_MESSAGE_SIZE,
   TRAILER_FLAG,
   decodeFrames,
   encodeFrame,
@@ -12,7 +14,7 @@ describe("encodeFrame / decodeFrames", () => {
   it("round-trips a data frame", () => {
     const payload = new TextEncoder().encode("hello-grpc-web");
     const frame = encodeFrame(payload);
-    assert.equal(frame.length, 5 + payload.length);
+    assert.equal(frame.length, FRAME_HEADER_SIZE + payload.length);
     assert.equal(frame[0], 0);
 
     const frames = decodeFrames(frame);
@@ -73,12 +75,13 @@ describe("encodeFrame / decodeFrames", () => {
     // past it. Without the same bound here, a bogus length prefix makes the live
     // reader wait for bytes that can never arrive: no frame, no error.
     const { GrpcWebFrameReader } = await import("../dist/frames.js");
-    const header = new Uint8Array(5);
+    const header = new Uint8Array(FRAME_HEADER_SIZE);
     new DataView(header.buffer).setUint32(1, 0x7fffffff, false);
+    const overCap = new RegExp(String(MAX_MESSAGE_SIZE));
 
-    assert.throws(() => decodeFrames(header), /4194304/);
+    assert.throws(() => decodeFrames(header), overCap);
 
     const reader = new GrpcWebFrameReader();
-    assert.throws(() => reader.push(header), /4194304/);
+    assert.throws(() => reader.push(header), overCap);
   });
 });

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGrpcWebClient } from "../dist/grpc-web.js";
-import { encodeFrame, TRAILER_FLAG } from "../dist/frames.js";
+import { encodeFrame, FRAME_HEADER_SIZE, TRAILER_FLAG } from "../dist/frames.js";
 import { GrpcCode } from "../dist/errors.js";
 
 function bytesToBase64(bytes) {
@@ -102,11 +102,11 @@ describe("createGrpcWebClient text format", () => {
 
     await client.unary("/svc/M", payload);
     assert.equal(sawCT, "application/grpc-web-text+proto");
-    // Request is base64 of a 5+len frame wrapping payload.
+    // Request is base64 of a frame header wrapping the payload.
     const decoded = Uint8Array.from(atob(sawBody), (c) => c.charCodeAt(0));
     assert.equal(decoded[0], 0);
-    assert.equal(decoded.length, 5 + payload.length);
-    assert.deepEqual(decoded.subarray(5), payload);
+    assert.equal(decoded.length, FRAME_HEADER_SIZE + payload.length);
+    assert.deepEqual(decoded.subarray(FRAME_HEADER_SIZE), payload);
   });
 });
 

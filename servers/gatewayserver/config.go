@@ -6,11 +6,12 @@ import (
 
 	"github.com/pubgo/lava/v2/pkg/fiberbuilder"
 	"github.com/pubgo/lava/v2/pkg/grpcbuilder"
+	"github.com/pubgo/lava/v2/pkg/grpcutil"
 )
 
-const (
-	defaultContentType = "application/grpc"
-)
+// defaultContentType is what an RPC request looks like when the gateway has no
+// content-type metadata to read.
+const defaultContentType = grpcutil.DefaultContentType
 
 // ConfigLoader loads gateway server settings from gateway_server YAML key.
 type ConfigLoader struct {

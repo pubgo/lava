@@ -12,7 +12,14 @@ import (
 
 const (
 	grpcEncodingIdentity = "identity"
+	grpcEncodingGzip     = "gzip"
+
+	// A gRPC frame is one flag byte, a big-endian 4-byte length, then the payload.
+	// The flag bits are the compression and trailer markers; the trailer bit is how
+	// gRPC-Web reports status after the response head is already on the wire.
+	grpcFrameHeaderSize  = 5
 	grpcFrameCompressed  = 0x01
+	grpcFrameTrailerFlag = 1 << 7
 )
 
 func errUnsupportedGRPCEncoding(enc string) error {
@@ -58,8 +65,8 @@ func (s *streamHTTP) supportedAcceptEncoding() string {
 	preferred := make([]string, 0, len(names)+1)
 	rest := make([]string, 0, len(names))
 	for _, n := range names {
-		if n == "gzip" {
-			preferred = append(preferred, "gzip")
+		if n == grpcEncodingGzip {
+			preferred = append(preferred, grpcEncodingGzip)
 			continue
 		}
 		rest = append(rest, n)

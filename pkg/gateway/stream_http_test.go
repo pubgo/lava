@@ -36,8 +36,6 @@ func (m *maxReadRecorder) Read(p []byte) (int, error) {
 }
 
 func TestStreamHTTP_RecvMsg_RejectsOversizedStreamedGRPCFrame(t *testing.T) {
-	const grpcMaxMsgSize = 4 << 20 // core/registry.DefaultMaxMsgSize
-
 	inType, err := protoregistry.GlobalTypes.FindMessageByName("google.protobuf.Empty")
 	if err != nil {
 		t.Fatalf("find input type: %v", err)
@@ -47,7 +45,7 @@ func TestStreamHTTP_RecvMsg_RejectsOversizedStreamedGRPCFrame(t *testing.T) {
 		name   string
 		length uint32
 	}{
-		{name: "one byte over the limit", length: grpcMaxMsgSize + 1},
+		{name: "one byte over the limit", length: grpcMaxRecvMsgSize + 1},
 		{name: "client claims max uint32", length: math.MaxUint32},
 	}
 

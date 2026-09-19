@@ -2,7 +2,7 @@ const TRAILER_FLAG = 0x80;
 const COMPRESSED_FLAG = 0x01;
 
 /** 1 flag byte + 4 big-endian length bytes. */
-const FRAME_HEADER_SIZE = 5;
+export const FRAME_HEADER_SIZE = 5;
 
 /**
  * Mirrors `grpcMaxRecvMsgSize` in pkg/gateway/stream.http.go. A 4-byte length

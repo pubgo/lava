@@ -20,6 +20,14 @@ const (
 	grpcBase    = "application/grpc"
 	grpcWeb     = "application/grpc-web"
 	grpcWebText = "application/grpc-web-text"
+	grpcWebJson = "application/grpc-web-json"
+)
+
+// Header names a gRPC-Web client reads as the call's outcome. writeTrailer emits
+// them lowercase in the trailer frame.
+const (
+	grpcHeaderStatus  = "grpc-status"
+	grpcHeaderMessage = "grpc-message"
 )
 
 // isWebRequest checks for gRPC Web headers.
@@ -30,7 +38,7 @@ func isWebRequest(r *http.Request) (typ, enc string, ok bool) {
 
 // isWebRequestFromContentType checks for gRPC Web headers from content type string.
 func isWebRequestFromContentType(ct, method string) (typ, enc string, ok bool) {
-	if !strings.HasPrefix(ct, "application/grpc-web") || method != http.MethodPost {
+	if !strings.HasPrefix(ct, grpcWeb) || method != http.MethodPost {
 		return "", "", false
 	}
 	typ, enc, ok = strings.Cut(ct, "+")
@@ -163,19 +171,19 @@ func (w *fiberWebWriter) writeTrailer() error {
 		}
 	}
 	if w.errCode != nil {
-		setTrailer("grpc-status", strconv.FormatUint(uint64(*w.errCode), 10))
-		setTrailer("grpc-message", w.errMessage)
+		setTrailer(grpcHeaderStatus, strconv.FormatUint(uint64(*w.errCode), 10))
+		setTrailer(grpcHeaderMessage, w.errMessage)
 	}
 	// Add default grpc-status if not present
-	if v := tr["grpc-status"]; len(v) == 0 || v[0] == "" {
-		setTrailer("grpc-status", "0")
+	if v := tr[grpcHeaderStatus]; len(v) == 0 || v[0] == "" {
+		setTrailer(grpcHeaderStatus, "0")
 	}
 	var buf bytes.Buffer
 	if err := tr.Write(&buf); err != nil {
 		return err
 	}
-	head := []byte{1 << 7, 0, 0, 0, 0} // MSB=1 indicates this is a trailer data frame.
-	binary.BigEndian.PutUint32(head[1:5], uint32(buf.Len()))
+	head := []byte{grpcFrameTrailerFlag, 0, 0, 0, 0}
+	binary.BigEndian.PutUint32(head[1:grpcFrameHeaderSize], uint32(buf.Len()))
 	if _, err := w.resp.Write(head); err != nil {
 		return err
 	}
@@ -185,6 +193,12 @@ func (w *fiberWebWriter) writeTrailer() error {
 	return nil
 }
 
+// isGRPCWebTrailerHeader reports whether a response header belongs in the
+// gRPC-Web trailer block. It is not the same question as isReservedHeader: that
+// one filters transport-controlled names out of handler metadata, while this one
+// keeps grpc-status and grpc-message (the trailer's payload) and drops the rest
+// of the grpc-* negotiation, which travels as a header and would be wrong to
+// repeat.
 func isGRPCWebTrailerHeader(k string) bool {
 	k = strings.ToLower(k)
 	switch k {
