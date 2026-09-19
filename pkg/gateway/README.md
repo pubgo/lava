@@ -112,7 +112,7 @@ curl -X POST http://localhost:8080/v1/users \
 | [gRPC Web](docs/grpcweb.md)      | 浏览器端 gRPC Web 集成                 |
 | [WebSocket](docs/websocket.md)   | 基于 coder/websocket 的 WebSocket 前端 |
 | [Native gRPC](docs/grpcnative.md) | 原生 gRPC 透传，RegisterService 一次多协议复用 |
-| [NATS/zrpc 桥接](../../zrpcbridge/README.md) | 可选：NATS 订阅桥接到 Mux（非 gateway 前端） |
+| [NATS/zrpc 桥接](../zrpcbridge/README.md) | 可选：NATS 订阅桥接到 Mux（非 gateway 前端） |
 | [架构设计](docs/architecture.md) | 分层架构、核心组件、调度流程           |
 | [目标设计与演进](docs/design-evolution.md) | 目标契约、中间件模型、分阶段计划 |
 | [实现细节](docs/internals.md)    | 路径解析、调度器、元数据转换、流式处理 |

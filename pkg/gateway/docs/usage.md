@@ -299,18 +299,24 @@ mux := gateway.NewMux(
 
 HTTP/JSON 前端将 gRPC 错误码映射为 HTTP 状态码，并返回 JSON：`{"code":N,"message":"..."}`。
 gRPC-Web 则写入 `grpc-status` / `grpc-message` 并由 trailer 帧带回客户端。
+server-stream（NDJSON）的 200 已经发出，无法再改状态码，失败时流末尾追加一行 `{"error":{"code":N,"message":"..."}}`（包一层 `error` 是为了和可能长成 `{code,message}` 的数据行区分）。
 
 | gRPC Code | HTTP Status |
 |-----------|-------------|
 | OK | 200 |
+| Canceled | 499 |
 | InvalidArgument | 400 |
 | Unauthenticated | 401 |
 | PermissionDenied | 403 |
 | NotFound | 404 |
 | AlreadyExists | 409 |
 | ResourceExhausted | 429 |
+| Unimplemented | 501（HTTP 前端拒绝 client-stream / bidi） |
 | Internal | 500 |
+| DeadlineExceeded | 504 |
 | Unavailable | 503 |
+
+完整映射见 [实现细节](internals.md#错误码映射)。
 
 在服务中返回 gRPC 错误：
 

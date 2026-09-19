@@ -254,7 +254,7 @@ flowchart TD
     B -- No --> D["普通分支"]
 
     C --> C1{"Upgrade=websocket?"}
-    C1 -- Yes --> Cx["返回 500: unimplemented"]
+    C1 -- Yes --> Cx["返回 426 Upgrade Required"]
     C1 -- No --> C2["改写 Content-Type 为 application/grpc+enc"]
     C2 --> C3{"typ == grpc-web-text?"}
     C3 -- Yes --> C4["Base64 解码 body/stream"]
@@ -276,8 +276,8 @@ flowchart TD
     J --> K["构建 streamHTTP"]
 
     K --> O{"ClientStreams?"}
-    O -- Yes --> Ox["返回 Unimplemented"]
-    O -- No --> N["DispatchFrontend（内部 RecvMsg + Dispatch）"]
+    O -- Yes --> Ox["返回 Unimplemented（HTTP 501 / gRPC-Web trailer）"]
+    O -- No --> N["Mux.DispatchFrontend（内部 RecvMsg + Dispatch）"]
 
     N --> P{"grpcStreamDesc == nil?"}
     P -- Yes --> Q["Unary: Invoke + SendMsg"]
@@ -342,71 +342,43 @@ flowchart TD
     class M error;
 ```
 
-### gRPC-Web-JSON 专项流程图
+### 三种 JSON 相关的 content type
 
-`application/grpc-web-json` 在当前实现中会走 **gRPC-Web 入口**，但在编解码阶段按 **JSON 传输** 处理（不走 gRPC frame）。
+带 JSON 的写法有两种，行为差别很大：**`+json` 后缀**才是 gRPC-Web 上的 JSON，**`grpc-web-json`** 这个别名走的是普通 HTTP/JSON。
 
-```mermaid
-flowchart TD
-    A["请求 Content-Type = application/grpc-web-json"] --> B["Handler 命中 gRPC-Web 分支"]
-    B --> C["改写请求头为 application/grpc+json"]
-    C --> D["创建 fiberWebWriter"]
-    D --> E["routerTree.Match"]
-    E --> F["构建 streamHTTP 并 RecvMsg"]
-    F --> G["isGRPCContentType(application/grpc-web-json) = false"]
-    G --> H["按 JSON 反序列化请求体"]
-    H --> I["DispatchFrontend 调用后端 gRPC"]
-    I --> J["SendMsg 时按 JSON 序列化响应"]
-    J --> K["fiberWebWriter 写出 grpc-web 响应并 flush trailer"]
+| 请求 Content-Type                 | 入口判定                              | 请求头改写                     | `isGRPCContentType` | 帧         | 编解码       | 状态送达                        |
+| --------------------------------- | ------------------------------------- | ------------------------------ | ------------------- | ---------- | ------------ | ------------------------------- |
+| `application/grpc-web+proto`      | `isWebRequestFromContentType` 命中    | `application/grpc+proto`       | `true`              | gRPC frame | protobuf     | trailer 帧 `grpc-status`        |
+| `application/grpc-web+json`       | `isWebRequestFromContentType` 命中    | `application/grpc+json`        | `true`              | gRPC frame | JSON         | trailer 帧 `grpc-status`        |
+| `application/grpc-web-json`（别名） | `isWebRequestFromContentType` **不**命中 | 不改写                       | `false`             | 无         | JSON         | HTTP 状态码 + `{"code","message"}` |
 
-    classDef entry fill:#E8F4FF,stroke:#4A90E2,stroke-width:1.2px,color:#0B3D91;
-    classDef decision fill:#F4EEFF,stroke:#7A5AF8,stroke-width:1.2px,color:#4C33B6;
-    classDef process fill:#FFF7E8,stroke:#C87B00,stroke-width:1.2px,color:#7A4A00;
-
-    class A entry;
-    class G decision;
-    class B,C,D,E,F,H,I,J,K process;
-```
-
-> 说明：`stream.http.go` 中 `isGRPCContentType` 对 `application/grpc-web-json` 做了显式兼容，返回 `false`；相关行为由 `stream_http_test.go` 的 `TestIsGRPCContentType_GrpcWebJSONAlias` 覆盖。
-
-### grpc-web+proto vs grpc-web-json 差异对比
-
-| 维度                | grpc-web+proto                                   | grpc-web-json                      |
-| ------------------- | ------------------------------------------------ | ---------------------------------- |
-| 入口判定            | `isWebRequestFromContentType` 命中               | `isWebRequestFromContentType` 命中 |
-| 请求头改写          | `application/grpc+proto`                         | `application/grpc+json`            |
-| `isGRPCContentType` | `true`                                           | `false`（别名按 JSON 处理）        |
-| 请求解码            | gRPC frame + protobuf                            | JSON 反序列化                      |
-| 响应编码            | protobuf + gRPC frame                            | JSON 序列化                        |
-| 输出封装            | 由 `fiberWebWriter` 负责 grpc-web 响应与 trailer | 同左                               |
+别名这一行走的是完全普通的 HTTP/JSON 分支：既没有 base64，也没有 gRPC 帧和 trailer 帧。`isGRPCContentType` 里对 `application/grpc-web-json` 的显式判断是为了让这种请求体按裸 JSON 解析——去掉它，`{"..."}` 会被当成一个不完整的 gRPC 帧而报 `invalid gRPC frame: too short`（400）。
 
 ```mermaid
 flowchart LR
-    subgraph P["grpc-web+proto"]
-        P1["Content-Type: application/grpc-web+proto"] --> P2["Handler gRPC-Web 分支"]
-        P2 --> P3["改写为 application/grpc+proto"]
-        P3 --> P4["isGRPCContentType = true"]
-        P4 --> P5["RecvMsg: 解析 gRPC frame + protobuf"]
-        P5 --> P6["SendMsg: protobuf + gRPC frame"]
-        P6 --> P7["fiberWebWriter flush trailer"]
+    subgraph W["grpc-web+json（gRPC-Web 上的 JSON）"]
+        W1["Content-Type: application/grpc-web+json"] --> W2["Handler gRPC-Web 分支"]
+        W2 --> W3["改写为 application/grpc+json"]
+        W3 --> W4["RecvMsg: gRPC frame + JSON"]
+        W4 --> W5["SendMsg: JSON + gRPC frame"]
+        W5 --> W6["fiberWebWriter flush trailer"]
     end
 
-    subgraph J["grpc-web-json"]
-        J1["Content-Type: application/grpc-web-json"] --> J2["Handler gRPC-Web 分支"]
-        J2 --> J3["改写为 application/grpc+json"]
-        J3 --> J4["isGRPCContentType = false"]
-        J4 --> J5["RecvMsg: JSON 反序列化"]
-        J5 --> J6["SendMsg: JSON 序列化"]
-        J6 --> J7["fiberWebWriter flush trailer"]
+    subgraph A["application/grpc-web-json（别名）"]
+        A1["Content-Type: application/grpc-web-json"] --> A2["普通 HTTP/JSON 分支"]
+        A2 --> A4["RecvMsg: 裸 JSON 反序列化"]
+        A4 --> A5["SendMsg: JSON 序列化"]
+        A5 --> A6["HTTP 状态码 + {code,message}"]
     end
 
-    classDef proto fill:#EAFBF1,stroke:#2E8B57,stroke-width:1.2px,color:#165B33;
-    classDef json fill:#E8F4FF,stroke:#4A90E2,stroke-width:1.2px,color:#0B3D91;
+    classDef web fill:#EAFBF1,stroke:#2E8B57,stroke-width:1.2px,color:#165B33;
+    classDef alias fill:#E8F4FF,stroke:#4A90E2,stroke-width:1.2px,color:#0B3D91;
 
-    class P1,P2,P3,P4,P5,P6,P7 proto;
-    class J1,J2,J3,J4,J5,J6,J7 json;
+    class W1,W2,W3,W4,W5,W6 web;
+    class A1,A2,A4,A5,A6 alias;
 ```
+
+> 覆盖用例：`TestIsGRPCContentType_GrpcWebJSONAlias`（判定本身）、`TestHTTPFrontend_GRPCWebJSONIsPlainJSONTransport`（端到端：响应是裸 JSON，没有帧头）。
 
 ## 关键数据结构
 
@@ -456,26 +428,24 @@ type nodeTree struct {
 
 **编解码器接口：**
 ```go
+// types.go
 type Codec interface {
     encoding.Codec
+    // MarshalAppend appends the marshaled form of v to b and returns the result.
     MarshalAppend([]byte, any) ([]byte, error)
 }
-
-type StreamCodec interface {
-    Codec
-    ReadNext(buf []byte, r io.Reader, limit int) (dst []byte, n int, err error)
-    WriteNext(w io.Writer, src []byte) (n int, err error)
-}
 ```
+
+`CodecProto` 与 `CodecJSON` 另外导出了 `ReadNext` / `WriteNext`（长度前缀的消息读写）；仓库内目前没有调用方，gateway 自己的帧解析在 `streamHTTP` 里。
 
 ### 4. Stream（流处理）
 
 **流类型：**
-- `streamHTTP`：基于 Fiber Context 的 HTTP 请求/响应流
-- `fiberWebWriter`：gRPC Web 响应流
-- `streamWebSocket`：WebSocket 双向流
-- `streamInProcess`：进程内流
-- `streamProxy`：代理流
+- `streamHTTP`：基于 Fiber Context 的 HTTP 请求/响应流（HTTP/JSON、gRPC-Web、NDJSON 流式都用它）
+- `fiberWebWriter`：gRPC-Web 响应写入器（帧 + trailer）
+- `streamWS`：WebSocket 双向流
+
+进程内调用与代理后端不再有各自的 stream 类型：`Dispatcher` 只认前端的 `grpc.ServerStream`，后端由 `Backend`（`inprocgrpc.Channel`、`grpc.ClientConnInterface`、以及转发 call option 的 `callOptionsBackend`）表达。
 
 ### 5. ServiceWrapper 和 MethodWrapper
 

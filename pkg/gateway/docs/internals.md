@@ -37,7 +37,7 @@ func (d *Dispatcher) Dispatch(
 
 ### 入口与请求预读约定
 
-`Dispatcher.DispatchFrontend` 是各前端的统一入口（HTTP/gRPC-Web / native gRPC / WebSocket / zrpc 均使用）：它根据流模式自动决定是否预读请求，再委托给 `Dispatch`。
+各前端的统一入口是 `Mux.DispatchFrontend`（HTTP/gRPC-Web / native gRPC / WebSocket 以及 zrpc 的流式分支）：它按流模式决定是否预读请求，再把 `Dispatch` 包在 RPC 中间件里执行。zrpc 的 unary 分支请求体已在消息里拿到，直接调 `Mux.Dispatch`。`Dispatcher.DispatchFrontend` 是不含中间件的同一套预读+调度逻辑，供透明代理后端（`stream.proxy.go`）复用。
 
 - **Unary / Server-Stream**：先 `RecvMsg` 读入请求消息，作为 `in` 传给 `Dispatch`。
 - **Client-Stream / Bidi**：`in` 传 `nil`，由泵内部通过 `frontend.RecvMsg` 持续读取，直到返回 `io.EOF`。
@@ -46,7 +46,7 @@ func (d *Dispatcher) Dispatch(
 
 ### 拦截器
 
-- `UseRPCMiddleware`：包装整段 `Mux.Dispatch` / `DispatchFrontend`（所有流模式，本地与 proxy 一致）；unary/server-stream 请求体见 `IncomingPayload`。
+- `UseRPCMiddleware`：包装整段 `Mux.Dispatch`（所有流模式，本地与 proxy 一致）；`Mux.DispatchFrontend` 预读请求后才进入它，因此预读失败（请求体解不开）不会被中间件看到。unary/server-stream 请求体见 `IncomingPayload`。
 - `UseBackendUnaryInterceptor` / `UseBackendStreamInterceptor`：挂在 Backend 边界，本地与 proxy 共用（见 `backend.go`）。
 - `SetUnaryInterceptor` / `SetStreamInterceptor`：挂在 `inprocgrpc.Channel`，只影响 `RegisterService` 本地实现（兼容层）。
 
@@ -143,8 +143,11 @@ localClient.RegisterService(sd, ss)  // 注册服务到进程内通道
 
 ## 错误码映射
 
-HTTP/JSON 前端通过 `HTTPStatusFromCode`（`grpccodes.go`）将 gRPC status 写成对应 HTTP 状态码，响应体为 `{"code":N,"message":"..."}`。
-gRPC-Web 前端则设置 `Grpc-Status` / `Grpc-Message`，由 `fiberWebWriter` 以 trailer 帧返回（无响应体时也会强制写出 trailer）。
+HTTP/JSON 前端通过 `HTTPStatusFromCode`（`grpccodes.go`）将 gRPC status 写成对应 HTTP 状态码，unary 响应体为 `{"code":N,"message":"..."}`。
+
+server-stream（NDJSON）的 200 响应头在 `Dispatch` 失败之前就已写出，状态码改不了了，因此在流的末尾追加一行 `{"error":{"code":N,"message":"..."}}`。包一层 `error` 是为了和数据的 `{code,message}` 区分：schemaless（`google.protobuf.Struct`）流完全可能发出后者的数据行。同理会一并丢弃的还有响应 header/trailer 中的自定义 metadata（该框架无法送达），实现只记一条 Debug 日志。
+
+gRPC-Web 前端把 `grpc-status` / `grpc-message` 放进 trailer 帧返回（key 一律小写，`http.Header` 的规范化会把它变成首字母大写，客户端就读不到了）；即使没有响应体也会强制写出 trailer。
 
 完整的 gRPC 错误码到 HTTP 状态码映射：
 
@@ -175,8 +178,8 @@ gRPC-Web 前端则设置 `Grpc-Status` / `Grpc-Message`，由 `fiberWebWriter` �
 通过 `Content-Type` 头检测 gRPC Web 请求：
 
 ```go
-func isWebRequestFromContentType(ct, method string) (typ string, enc string, ok bool) {
-    if !strings.HasPrefix(ct, "application/grpc-web") || method != http.MethodPost {
+func isWebRequestFromContentType(ct, method string) (typ, enc string, ok bool) {
+    if !strings.HasPrefix(ct, grpcWeb) || method != http.MethodPost {
         return "", "", false
     }
     typ, enc, ok = strings.Cut(ct, "+")
@@ -194,12 +197,21 @@ func isWebRequestFromContentType(ct, method string) (typ string, enc string, ok 
 
 ```go
 type fiberWebWriter struct {
-    ctx         *fiber.Ctx
+    ctx         fiber.Ctx
+    fctx        *fasthttp.RequestCtx // 直播流使用，Fiber ctx 会被池化
     resp        io.Writer
-    typ         string // grpcWeb or grpcWebText
-    enc         string // proto or json
+    respCloser  io.Closer   // grpc-web-text 的流式 base64 编码器
+    flushWriter http.Flusher
+    typ         string      // grpcWeb 或 grpcWebText
+    enc         string      // proto 或 json
     wroteHeader bool
-    wroteResp   bool
+
+    // 响应头可能已提交，这些字段暂存 trailer 内容，由 writeTrailer 统一写出
+    errCode      *uint32
+    errMessage   string
+    extraTrailer http.Header
+
+    headersCommitted bool // 直播流：响应头已序列化，只能写 trailer 帧
 }
 ```
 
@@ -210,28 +222,20 @@ type fiberWebWriter struct {
 
 ### Trailer 帧格式
 
+`writeTrailer` 先把 trailer 收集到一个 key 全部小写的 `http.Header`，来源有三处：
+
+1. 响应头里 `grpc-` 前缀的项，由 `isGRPCWebTrailerHeader` 过滤掉 `grpc-encoding`、`grpc-accept-encoding`、`grpc-timeout`、`grpc-message-type`（它们是 header，不该在 trailer 里重复）；
+2. `addTrailers` 排入的自定义 metadata；
+3. `markErrorTrailer` 记录的 `grpc-status` / `grpc-message`，缺省时补一条 `grpc-status: 0`。
+
+随后按普通 gRPC 帧写出，只是 flags 用 trailer 标记（`0x80`，即最高位）：
+
 ```go
-func (w *fiberWebWriter) writeTrailer() error {
-    // 收集 grpc-* headers
-    tr := make(http.Header)
-    w.ctx.Response().Header.VisitAll(func(key, value []byte) {
-        k := string(key)
-        if strings.HasPrefix(strings.ToLower(k), "grpc-") {
-            tr[strings.ToLower(k)] = []string{string(value)}
-        }
-    })
-    // 默认 grpc-status
-    if tr.Get("grpc-status") == "" {
-        tr.Set("grpc-status", "0")
-    }
-    
-    // 写入 trailer 帧
-    head := []byte{1 << 7, 0, 0, 0, 0} // MSB=1 表示 trailer
-    binary.BigEndian.PutUint32(head[1:5], uint32(buf.Len()))
-    w.resp.Write(head)
-    w.resp.Write(buf.Bytes())
-}
+head := []byte{grpcFrameTrailerFlag, 0, 0, 0, 0}
+binary.BigEndian.PutUint32(head[1:grpcFrameHeaderSize], uint32(buf.Len()))
 ```
+
+`flushWithTrailer` 即使 trailer 写入失败也会 `Close` 编码器并 `Flush`：响应已经丢了，但不能把流式编码器留在打开状态。
 
 ## 流式处理实现
 
@@ -260,7 +264,7 @@ func (w *fiberWebWriter) writeTrailer() error {
 [1 byte: flags] [4 bytes: length (big-endian)] [message bytes]
 ```
 
-- flags: `0x00` = 数据帧，`0x80` = trailer 帧
+- flags: `0x00` = 数据帧，`0x01` = 压缩帧（`grpc-encoding` 协商），`0x80` = trailer 帧
 - length: 消息长度（大端序）
 - message: 实际的 protobuf 消息
 

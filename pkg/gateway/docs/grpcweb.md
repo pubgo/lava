@@ -129,7 +129,8 @@ Gateway 通过 `Content-Type` 头判断请求类型：
 | --------------------------------- | -------------------------- |
 | `application/grpc-web+proto`      | gRPC Web 二进制格式 (推荐) |
 | `application/grpc-web-text+proto` | gRPC Web Base64 文本格式   |
-| `application/grpc-web+json`       | gRPC Web JSON 格式         |
+| `application/grpc-web+json`       | gRPC Web JSON 格式（仍是 gRPC 帧 + trailer） |
+| `application/grpc-web-json`       | 别名，走**普通 JSON 传输**（无 gRPC 帧、无 trailer），不等价于上一行 |
 | `application/json`                | 普通 HTTP/JSON (REST API)  |
 
 ## gRPC Web 协议格式
@@ -143,6 +144,7 @@ Gateway 通过 `Content-Type` 头判断请求类型：
 - Compression flag: `0x00` = 无压缩，`0x01` = 压缩（算法见请求头 `grpc-encoding`）
 - Message length: 4 字节大端整数
 - Message: Protobuf（或协商编码）消息字节
+- gRPC 帧路径（`+proto` / `+json` / `grpc-web-text`）单条消息上限 4 MiB（`grpcMaxRecvMsgSize`，超出返回 `InvalidArgument`；浏览器侧 `sdk/js/gateway-client` 的 `MAX_MESSAGE_SIZE` 与之对齐）
 
 请求压缩需同时设置：
 - 帧标志 `0x01`
@@ -161,7 +163,9 @@ Gateway 通过 `Content-Type` 头判断请求类型：
 Trailer:  [0x80] [4 bytes: length] [HTTP headers format]
 ```
 
-Trailer 示例: `Grpc-Status: 0\r\n`
+Trailer 示例: `grpc-status: 0\r\n`
+
+trailer 内的 key 一律小写（`grpc-status` / `grpc-message`）：Go 的 `http.Header` 规范化会写成首字母大写的 `Grpc-Status`，而 gRPC-Web 客户端按小写读取，那样就取不到状态了。
 
 ## CORS 配置
 
@@ -269,10 +273,10 @@ open http://localhost:8080/
 
 ## 流式支持
 
-gRPC-Web 前端复用统一的 `Dispatcher`：
+gRPC-Web 前端与 HTTP/REST 共用 `httpFrontend` → `Mux.DispatchFrontend`：
 
 - ✅ Unary
 - ✅ 服务端响应流（Server Streaming）
-- ⚠️ 客户端流 / 双向流（Client / Bidi Streaming）：受 gRPC-Web 协议本身限制，浏览器侧难以原生支持上行流。若需要完整双向流能力，请改用 [WebSocket 前端](websocket.md)（基于同一套后端 handler）。
+- ❌ 客户端流 / 双向流（Client / Bidi Streaming）：`httpFrontend` 在进入调度前直接拒绝，返回 `codes.Unimplemented`（HTTP 501；gRPC-Web 走 trailer），因为单次 HTTP 请求体无法表达上行多消息。若需要完整双向流能力，请改用 [WebSocket 前端](websocket.md) 或 Native gRPC（基于同一套后端 handler）。
 
-> 注意：`Dispatcher` 在调度层已实现四种流模式，gRPC-Web 的客户端流/双向流限制来自浏览器与 gRPC-Web 协议，而非 Gateway 调度能力。
+> 注意：调度层（`Dispatcher`）本身实现了四种流模式，限制在 HTTP/gRPC-Web 前端入口处，不在后端能力上。

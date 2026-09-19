@@ -78,6 +78,7 @@ func (f *httpFrontend) handle(ctx fiber.Ctx) error {
 			Err(err).
 			Str("method", ctx.Method()).
 			Str("path", string(ctx.Request().URI().Path())).
+			Str("operation", match.Operation).
 			Msg("invoke failed")
 		return f.writeHTTPError(ctx, webWriter, err)
 	}

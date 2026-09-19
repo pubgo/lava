@@ -59,7 +59,7 @@ Client ────────►├─ wsFrontend     (net/http)   四流
 
 | API | 作用范围 | 用途 |
 | --- | --- | --- |
-| `UseRPCMiddleware` | 整段 `Dispatch` / `DispatchFrontend`（所有流模式，本地 + proxy） | lava Middleware 等需观察完整 RPC 生命周期的横切 |
+| `UseRPCMiddleware` | 整段 `Mux.Dispatch`（所有流模式，本地 + proxy）；`Mux.DispatchFrontend` 在预读请求后进入它 | lava Middleware 等需观察完整 RPC 生命周期的横切 |
 | `UseBackendUnaryInterceptor` / `UseBackendStreamInterceptor` | **所有** `Invoke`/`NewStream`（本地 + proxy） | 调用边界日志、鉴权、指标、超时 |
 | `SetUnaryInterceptor` / `SetStreamInterceptor` | 仅 `RegisterService` 的 inproc **server** 拦截器 | 兼容层；新横切优先 `UseRPCMiddleware` / `UseBackend*` |
 
@@ -67,7 +67,7 @@ Client ────────►├─ wsFrontend     (net/http)   四流
 
 - 宣称「Mux 中间件」时，默认指 **RPC / Backend 链**（本地与 proxy 一致）。  
 - inproc server 拦截器是实现细节/兼容层，不应当作「统一后端」的唯一挂点。  
-- Unary / server-stream 的请求体经 `IncomingPayload(ctx)` 对 RPC 中间件可见。  
+- Unary / server-stream 的请求体经 `IncomingPayload(ctx)` 对 RPC 中间件可见。预读发生在 RPC 链之前，因此请求体解码失败不会被任何 RPC 中间件观察到。  
 - RPC 链只挂在 `Dispatch`：`Invoke`/`NewStream` 在流开始即返回，包装它们会让中间件在流结束前收尾（`defer` 清理、`timeout` 的 `context.CancelFunc` 直接杀掉流）。直接以 Mux 为 client 的横切走 Backend 链。  
 
 ## 元数据契约（目标）

@@ -574,3 +574,30 @@ func TestHTTPFrontend_CodecUnmarshalErrorNamesOperation(t *testing.T) {
 		t.Fatalf("message must name the rejected RPC, got %q", payload.Message)
 	}
 }
+
+func TestHTTPFrontend_GRPCWebJSONIsPlainJSONTransport(t *testing.T) {
+	// `application/grpc-web-json` never enters the gRPC-Web branch: protocol
+	// detection only accepts grpc-web and grpc-web-text, so there is no base64 or
+	// trailer framing here. The isGRPCContentType alias check is what stops the
+	// body being parsed as a length-prefixed frame; drop it and this request is
+	// rejected as a short gRPC frame instead of read as JSON.
+	const fullMethod = "/test.v1.Echo/Ping"
+	app := newUnaryMux(t, &fakeClientConn{}, fullMethod)
+
+	req := httptest.NewRequest(fiber.MethodPost, fullMethod, strings.NewReader(`{}`))
+	req.Header.Set("Content-Type", "application/grpc-web-json")
+
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test: %v", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != fiber.StatusOK {
+		t.Fatalf("status=%d want 200, body=%q", resp.StatusCode, body)
+	}
+	if len(body) == 0 || body[0] != '{' {
+		t.Fatalf("want a bare JSON body, got a %d-byte body %q", len(body), body)
+	}
+}
