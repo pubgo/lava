@@ -1,4 +1,5 @@
-import { GatewayError, GrpcCode } from "./errors.js";
+import { decodeResponseBody, parseBackendError } from "./errors.js";
+import { joinURL, mergeHeaders } from "./http-util.js";
 
 export type HttpJsonClientOptions = {
   /** Gateway origin, e.g. https://api.example.com (no trailing slash). */
@@ -19,24 +20,11 @@ export type HttpJsonResponse<T> = {
   httpStatus: number;
 };
 
-function joinURL(base: string, path: string): string {
-  const b = base.replace(/\/+$/, "");
-  const p = path.startsWith("/") ? path : `/${path}`;
-  return `${b}${p}`;
-}
-
-function mergeHeaders(...parts: Array<HeadersInit | undefined>): Headers {
-  const out = new Headers();
-  for (const part of parts) {
-    if (!part) continue;
-    new Headers(part).forEach((v, k) => out.set(k, v));
-  }
-  return out;
-}
-
 /**
  * HTTP/JSON client for lava gateway REST routes (`google.api.http`).
- * Errors map to {@link GatewayError} using the gateway JSON error body.
+ * Failed responses are mapped by parseBackendError, the same mapping the JSON-RPC
+ * transport uses, so lava/errorpb bodies, `{code,message}` bodies and plain text
+ * all arrive as a GatewayError.
  */
 export function createHttpJsonClient(opts: HttpJsonClientOptions) {
   const doFetch = opts.fetch ?? globalThis.fetch.bind(globalThis);
@@ -59,31 +47,11 @@ export function createHttpJsonClient(opts: HttpJsonClientOptions) {
       signal: reqOpts?.signal,
     });
 
-    const text = await res.text();
-    let parsed: unknown = undefined;
-    if (text) {
-      try {
-        parsed = JSON.parse(text);
-      } catch {
-        parsed = text;
-      }
-    }
+    const parsed = decodeResponseBody(await res.text());
 
     if (!res.ok) {
-      const obj = parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {};
-      const code = typeof obj.code === "number" ? obj.code : GrpcCode.Unknown;
-      const message =
-        typeof obj.message === "string"
-          ? obj.message
-          : typeof parsed === "string"
-            ? parsed
-            : res.statusText;
-      throw new GatewayError({
-        code,
-        message,
-        httpStatus: res.status,
-        trailers: res.headers,
-      });
+      // With no body the status text is the only reason the client gets.
+      throw parseBackendError(parsed ?? res.statusText, res.status, res.headers);
     }
 
     return {

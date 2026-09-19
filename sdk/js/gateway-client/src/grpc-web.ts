@@ -1,4 +1,5 @@
 import { GatewayError, GrpcCode } from "./errors.js";
+import { joinURL, mergeHeaders } from "./http-util.js";
 import {
   Base64ByteDecoder,
   COMPRESSED_FLAG,
@@ -53,21 +54,6 @@ export type GrpcWebStreamResult = {
 export type GrpcWebStreamEvent =
   | { type: "message"; message: Uint8Array }
   | { type: "trailer"; trailers: Headers };
-
-function joinURL(base: string, path: string): string {
-  const b = base.replace(/\/+$/, "");
-  const p = path.startsWith("/") ? path : `/${path}`;
-  return `${b}${p}`;
-}
-
-function mergeHeaders(...parts: Array<HeadersInit | undefined>): Headers {
-  const out = new Headers();
-  for (const part of parts) {
-    if (!part) continue;
-    new Headers(part).forEach((v, k) => out.set(k, v));
-  }
-  return out;
-}
 
 function decodeGrpcMessage(message: string): string {
   try {

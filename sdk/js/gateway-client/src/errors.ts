@@ -21,32 +21,22 @@ export const GrpcCode = {
   Unauthenticated: 16,
 } as const;
 
-export const GRPC_CODE_NAMES = [
-  "OK",
-  "CANCELLED",
-  "UNKNOWN",
-  "INVALID_ARGUMENT",
-  "DEADLINE_EXCEEDED",
-  "NOT_FOUND",
-  "ALREADY_EXISTS",
-  "PERMISSION_DENIED",
-  "RESOURCE_EXHAUSTED",
-  "FAILED_PRECONDITION",
-  "ABORTED",
-  "OUT_OF_RANGE",
-  "UNIMPLEMENTED",
-  "INTERNAL",
-  "UNAVAILABLE",
-  "DATA_LOSS",
-  "UNAUTHENTICATED",
-] as const;
+/**
+ * protobuf's SCREAMING_SNAKE spelling of each {@link GrpcCode}, indexed by its
+ * number. Derived rather than hand-written: a second table can be updated out
+ * of step with the codes and still type-check, and the drift only shows up as a
+ * wrong status name at runtime.
+ */
+export const GRPC_CODE_NAMES: readonly string[] = Object.entries(GrpcCode)
+  .sort(([, a], [, b]) => a - b)
+  .map(([name]) => name.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toUpperCase());
 
 export function statusName(code: number): string {
   return GRPC_CODE_NAMES[code] ?? "UNKNOWN";
 }
 
 export function statusCodeFromName(name: string): number {
-  const idx = GRPC_CODE_NAMES.indexOf(name.toUpperCase().replace(/[\s-]+/g, "_") as (typeof GRPC_CODE_NAMES)[number]);
+  const idx = GRPC_CODE_NAMES.indexOf(name.toUpperCase().replace(/[\s-]+/g, "_"));
   return idx >= 0 ? idx : GrpcCode.Unknown;
 }
 
@@ -63,20 +53,25 @@ export type BackendError = {
   id?: string;
 };
 
-export class GatewayError extends Error {
+/**
+ * What an HTTP gateway response knows about a failure beyond the gRPC status
+ * name. GatewayError stores these as fields; toRpcError re-attaches them to the
+ * RpcError handed to protobuf-ts callers.
+ */
+export type RpcErrorDetail = {
+  httpStatus?: number;
+  trailers?: Headers;
+  backendError?: BackendError;
+};
+
+export class GatewayError extends Error implements RpcErrorDetail {
   readonly code: number;
   readonly grpcMessage: string;
   readonly httpStatus?: number;
   readonly trailers: Headers;
   readonly backendError?: BackendError;
 
-  constructor(opts: {
-    code: number;
-    message: string;
-    httpStatus?: number;
-    trailers?: Headers;
-    backendError?: BackendError;
-  }) {
+  constructor(opts: RpcErrorDetail & { code: number; message: string }) {
     super(opts.message || `gateway error code=${opts.code}`);
     this.name = "GatewayError";
     this.code = opts.code;
@@ -148,7 +143,7 @@ export function rpcCodeFromBackendError(err: BackendError): string {
   return "INTERNAL";
 }
 
-export function parseBackendError(body: unknown, httpStatus?: number): GatewayError {
+export function parseBackendError(body: unknown, httpStatus?: number, trailers?: Headers): GatewayError {
   // The gateway answers some rejections (fiber errors, plain HTTP routes) as text
   // rather than a JSON error body. That text is the only reason the client gets.
   if (typeof body === "string" && body.trim() !== "") {
@@ -157,6 +152,7 @@ export function parseBackendError(body: unknown, httpStatus?: number): GatewayEr
       code: statusCodeFromName(mapped ?? "INTERNAL"),
       message: body,
       httpStatus,
+      trailers,
     });
   }
 
@@ -165,6 +161,7 @@ export function parseBackendError(body: unknown, httpStatus?: number): GatewayEr
       code: GrpcCode.Unknown,
       message: "Unknown error format",
       httpStatus,
+      trailers,
     });
   }
   const name = rpcCodeFromBackendError(body);
@@ -172,15 +169,45 @@ export function parseBackendError(body: unknown, httpStatus?: number): GatewayEr
     code: statusCodeFromName(name),
     message: body.message || body.name || "Unknown error",
     httpStatus,
+    trailers,
     backendError: body,
   });
 }
 
-export function toRpcError(err: unknown, method?: { name: string; service: string }): RpcError {
-  let rpcErr: RpcError;
+/** Decode a gateway response body: JSON when it parses, otherwise the raw text. */
+export function decodeResponseBody(text: string): unknown {
+  if (!text) return undefined;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
+/**
+ * Read a failed response body without assuming it is JSON. Some gateway
+ * rejections are plain text, and the text is the only reason the client gets.
+ */
+export async function readBackendError(res: Response): Promise<GatewayError> {
+  const text = await res.text().catch(() => "");
+  return parseBackendError(decodeResponseBody(text), res.status, res.headers);
+}
+
+/**
+ * An {@link RpcError} that still carries what the HTTP response said: protobuf-ts
+ * only knows about the status name, so without this the caller cannot see the
+ * HTTP status, the headers, or the parsed backend body.
+ */
+export type DetailedRpcError = RpcError & RpcErrorDetail;
+
+export function toRpcError(err: unknown, method?: { name: string; service: string }): DetailedRpcError {
+  let rpcErr: DetailedRpcError;
   if (err instanceof GatewayError) {
     rpcErr = new RpcError(err.grpcMessage || err.message, statusName(err.code));
-    (rpcErr as RpcError & { backendError?: BackendError }).backendError = err.backendError;
+    rpcErr.httpStatus = err.httpStatus;
+    rpcErr.trailers = err.trailers;
+    rpcErr.backendError = err.backendError;
+    rpcErr.cause = err;
   } else if (err instanceof RpcError) {
     rpcErr = err;
   } else if (err instanceof Error) {
@@ -188,6 +215,7 @@ export function toRpcError(err: unknown, method?: { name: string; service: strin
       err.message,
       err.name === "AbortError" ? "CANCELLED" : "INTERNAL",
     );
+    rpcErr.cause = err;
   } else {
     rpcErr = new RpcError(String(err), "INTERNAL");
   }

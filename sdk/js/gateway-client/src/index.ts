@@ -5,9 +5,12 @@ export {
   statusName,
   statusCodeFromName,
   parseBackendError,
+  readBackendError,
   rpcCodeFromBackendError,
   toRpcError,
   type BackendError,
+  type DetailedRpcError,
+  type RpcErrorDetail,
 } from "./errors.js";
 export {
   createHttpJsonClient,

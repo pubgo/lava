@@ -18,7 +18,8 @@ import {
   UnaryCall,
 } from "@protobuf-ts/runtime-rpc";
 
-import { GatewayError, parseBackendError, toRpcError } from "./errors.js";
+import { GatewayError, readBackendError, toRpcError } from "./errors.js";
+import { joinURL } from "./http-util.js";
 
 export type JsonRpcTransportOptions = RpcOptions & {
   /**
@@ -30,9 +31,7 @@ export type JsonRpcTransportOptions = RpcOptions & {
 };
 
 function makeUrl(baseUrl: string, method: MethodInfo): string {
-  let base = baseUrl;
-  if (base.endsWith("/")) base = base.slice(0, -1);
-  return `${base}/${method.service.typeName}/${method.name}`;
+  return joinURL(baseUrl, `${method.service.typeName}/${method.name}`);
 }
 
 function appendMeta(headers: Headers, meta: RpcOptions["meta"]) {
@@ -41,23 +40,6 @@ function appendMeta(headers: Headers, meta: RpcOptions["meta"]) {
     if (typeof v === "string") headers.append(k, v);
     else if (Array.isArray(v)) for (const item of v) headers.append(k, item);
   }
-}
-
-/**
- * Reads a failed response body without assuming it is JSON. Some gateway
- * rejections are plain text, and the text is the only reason the client gets.
- */
-async function readBackendError(res: Response): Promise<GatewayError> {
-  const text = await res.text().catch(() => "");
-  let body: unknown = text;
-  if (text) {
-    try {
-      body = JSON.parse(text);
-    } catch {
-      body = text;
-    }
-  }
-  return parseBackendError(body, res.status);
 }
 
 /**
