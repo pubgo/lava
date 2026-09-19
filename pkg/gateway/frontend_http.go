@@ -75,6 +75,7 @@ func (f *httpFrontend) handle(ctx fiber.Ctx) error {
 	header, trailer, err := f.mux.DispatchFrontend(stream.Context(), stream, op)
 	if err != nil {
 		log.Error().
+			Err(err).
 			Str("method", ctx.Method()).
 			Str("path", string(ctx.Request().URI().Path())).
 			Msg("invoke failed")
@@ -142,8 +143,9 @@ func (f *httpFrontend) handleServerStream(
 		header, trailer, err := f.mux.DispatchFrontend(stream.Context(), stream, op)
 		if err != nil {
 			log.Error().
+				Err(err).
 				Str("method", stream.reqMethod).
-				Str("path", match.Operation).
+				Str("operation", match.Operation).
 				Msg("invoke failed")
 			if webWriter != nil {
 				st := status.Convert(err)
@@ -152,6 +154,7 @@ func (f *httpFrontend) handleServerStream(
 				webWriter.markErrorTrailer(st.Code(), st.Message())
 				webWriter.flushWithTrailer()
 			} else {
+				logDroppedNDJSONMetadata(match.Operation, stream.header, stream.trailer)
 				writeNDJSONStreamError(bw, err)
 			}
 			return
@@ -168,14 +171,28 @@ func (f *httpFrontend) handleServerStream(
 		}
 
 		// NDJSON has no late-metadata channel, and the response head is committed.
-		if len(md) > 0 {
-			log.Debug().
-				Str("path", match.Operation).
-				Int("keys", len(md)).
-				Msg("dropped response metadata on NDJSON stream")
-		}
+		logDroppedNDJSONMetadata(match.Operation, md)
 		_ = bw.Flush()
 	})
+}
+
+// logDroppedNDJSONMetadata records metadata an NDJSON stream could not deliver.
+// Dropping is the documented design for this framing, so it stays at Debug: a
+// backend that calls SetHeader on every stream must not raise a log alarm.
+func logDroppedNDJSONMetadata(operation string, mds ...metadata.MD) {
+	var dropped []string
+	for _, md := range mds {
+		for k := range md {
+			dropped = append(dropped, k)
+		}
+	}
+	if len(dropped) == 0 {
+		return
+	}
+	log.Debug().
+		Str("operation", operation).
+		Strs("dropped", dropped).
+		Msg("dropped response metadata on NDJSON stream")
 }
 
 // writeNDJSONStreamError emits a single JSON error object on the NDJSON stream so
@@ -282,7 +299,9 @@ func decodeGRPCWebTextBody(ctx fiber.Ctx) error {
 			Str("method", ctx.Method()).
 			Str("path", string(ctx.Request().URI().Path())).
 			Msg("base64 decode failed")
-		return errors.Errorf("base64 decode failed, method=%s path=%s", ctx.Method(), string(ctx.Request().URI().Path()))
+		return status.Errorf(codes.InvalidArgument,
+			"base64 decode grpc-web-text body failed, path=%s: %v",
+			string(ctx.Request().URI().Path()), err)
 	}
 	ctx.Request().SetBody(dbuf[:n])
 	return nil

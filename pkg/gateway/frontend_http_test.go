@@ -471,3 +471,99 @@ func TestHTTPFrontend_ServerStreamNDJSONErrorStaysHTTPOk(t *testing.T) {
 		t.Fatalf("code=%d want Unimplemented, payload=%+v", payload.Code, payload)
 	}
 }
+
+// newUnaryMux registers a unary google.protobuf.Empty method at fullMethod,
+// backed by backend, behind a Fiber app that serves the gateway handler.
+func newUnaryMux(t *testing.T, backend Backend, fullMethod string) *fiber.App {
+	t.Helper()
+
+	mux := NewMux()
+	inType, err := protoregistry.GlobalTypes.FindMessageByName("google.protobuf.Empty")
+	if err != nil {
+		t.Fatalf("find input type: %v", err)
+	}
+	outType, err := protoregistry.GlobalTypes.FindMessageByName("google.protobuf.Empty")
+	if err != nil {
+		t.Fatalf("find output type: %v", err)
+	}
+
+	method := &methodWrapper{
+		srv:            &serviceWrapper{opts: mux.opts, remoteProxyCli: backend},
+		grpcFullMethod: fullMethod,
+		inputType:      inType,
+		outputType:     outType,
+	}
+	mux.opts.handlers[fullMethod] = method
+	if err = mux.routerTree.Add("POST", fullMethod, fullMethod, nil); err != nil {
+		t.Fatalf("add route: %v", err)
+	}
+
+	app := fiber.New()
+	app.All("/*", mux.Handler)
+	return app
+}
+
+func TestHTTPFrontend_MalformedGRPCWebTextBodyIsInvalidArgument(t *testing.T) {
+	// prepareGRPCWeb base64-decodes the text body before routing, so a body that
+	// is not valid base64 is a caller mistake. Returning a plain (non-status)
+	// error would map it to Unknown and answer a malformed request with a 500.
+	const fullMethod = "/test.v1.Echo/Ping"
+	app := newUnaryMux(t, &fakeClientConn{}, fullMethod)
+
+	req := httptest.NewRequest(fiber.MethodPost, fullMethod, strings.NewReader("!!!not base64!!!"))
+	req.Header.Set("Content-Type", "application/grpc-web-text+proto")
+
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test: %v", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != fiber.StatusBadRequest {
+		t.Fatalf("status=%d want 400, body=%q", resp.StatusCode, body)
+	}
+
+	var payload struct {
+		Code    uint32 `json:"code"`
+		Message string `json:"message"`
+	}
+	if err = json.Unmarshal(body, &payload); err != nil {
+		t.Fatalf("json body: %v (%q)", err, body)
+	}
+	if codes.Code(payload.Code) != codes.InvalidArgument {
+		t.Fatalf("code=%d want InvalidArgument, payload=%+v", payload.Code, payload)
+	}
+}
+
+func TestHTTPFrontend_CodecUnmarshalErrorNamesOperation(t *testing.T) {
+	// The same wrap text is used at several unmarshal sites; without the operation
+	// a production log line cannot say which RPC, frame or codec rejected the body.
+	const fullMethod = "/test.v1.Echo/Ping"
+	app := newUnaryMux(t, &fakeClientConn{}, fullMethod)
+
+	req := httptest.NewRequest(fiber.MethodPost, fullMethod, strings.NewReader(`{"nope"`))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test: %v", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	body, _ := io.ReadAll(resp.Body)
+
+	var payload struct {
+		Code    uint32 `json:"code"`
+		Message string `json:"message"`
+	}
+	if err = json.Unmarshal(body, &payload); err != nil {
+		t.Fatalf("json body: %v (%q)", err, body)
+	}
+	if codes.Code(payload.Code) != codes.InvalidArgument {
+		t.Fatalf("code=%d want InvalidArgument, payload=%+v", payload.Code, payload)
+	}
+	if !strings.Contains(payload.Message, fullMethod) {
+		t.Fatalf("message must name the rejected RPC, got %q", payload.Message)
+	}
+}

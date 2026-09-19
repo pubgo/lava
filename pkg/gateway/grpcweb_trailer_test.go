@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/binary"
+	"io"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -15,6 +16,45 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
+
+// closeSpy records whether an encoder was closed; flushSpy the same for flushes.
+type closeSpy struct{ closed int }
+
+func (c *closeSpy) Close() error { c.closed++; return nil }
+
+type flushSpy struct{ flushed int }
+
+func (f *flushSpy) Flush() { f.flushed++ }
+
+type failWriter struct{}
+
+func (failWriter) Write(_ []byte) (int, error) { return 0, io.ErrClosedPipe }
+
+func TestFiberWebWriter_TrailerFailureStillClosesEncoderAndFlushes(t *testing.T) {
+	// A failed trailer write must not skip cleanup: the response is already lost,
+	// but leaving the grpc-web-text base64 encoder unclosed abandons its state and
+	// never pushes the buffered bytes to the response.
+	closer := &closeSpy{}
+	flusher := &flushSpy{}
+	w := &fiberWebWriter{
+		typ:              grpcWebText,
+		enc:              "proto",
+		resp:             failWriter{},
+		respCloser:       closer,
+		flushWriter:      flusher,
+		wroteHeader:      true,
+		headersCommitted: true,
+	}
+
+	w.flushWithTrailer()
+
+	if closer.closed != 1 {
+		t.Fatalf("encoder close calls=%d want 1 after a failed trailer write", closer.closed)
+	}
+	if flusher.flushed == 0 {
+		t.Fatal("response must still be flushed after a failed trailer write")
+	}
+}
 
 func TestFiberWebWriter_TrailerFrameUsesLowercaseFieldNames(t *testing.T) {
 	var buf bytes.Buffer

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/pubgo/funk/v2/log"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -239,10 +240,19 @@ func (w *fiberWebWriter) flushWithTrailer() {
 		w.setContentType(w.typ + "+" + w.enc)
 	}
 	if err := w.writeTrailer(); err != nil {
-		return
+		evt := log.Warn()
+		switch {
+		case w.fctx != nil:
+			evt = evt.Str("path", string(w.fctx.Request.URI().Path()))
+		case w.ctx != nil:
+			evt = evt.Str("path", string(w.ctx.Request().URI().Path()))
+		}
+		evt.Err(err).Msg("write grpc-web trailer frame failed")
 	}
 	// Must Close the streaming base64 encoder so residual bits and padding are flushed.
 	// Per-Write Encode() with padding would concatenate into invalid base64 for clients.
+	// Cleanup runs even after a failed trailer write: the response is already lost, but
+	// the encoder must not be left open.
 	if w.respCloser != nil {
 		_ = w.respCloser.Close()
 		w.respCloser = nil

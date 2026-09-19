@@ -6,6 +6,7 @@ import (
 
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/errors/errcode"
+	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/proto/errorpb"
 	"github.com/pubgo/funk/v2/strutil"
 	"github.com/rs/xid"
@@ -47,7 +48,14 @@ func handlerRPCMiddle(middlewares map[string][]lava.Middleware) gateway.RPCMiddl
 		to := reqMetadata.Get("timeout")
 		delete(reqMetadata, "timeout")
 		if len(to) != 0 && to[0] != "" {
-			if dur, parseErr := time.ParseDuration(to[0]); parseErr == nil {
+			dur, parseErr := time.ParseDuration(to[0])
+			if parseErr != nil {
+				log.Warn().
+					Err(parseErr).
+					Str("operation", op.FullMethod).
+					Str("timeout", to[0]).
+					Msg("invalid timeout metadata, running without request timeout")
+			} else {
 				dur = grpcutil.CapRequestTimeout(dur)
 				var cancel context.CancelFunc
 				ctx, cancel = context.WithTimeout(ctx, dur)
@@ -113,6 +121,12 @@ func handlerRPCMiddle(middlewares map[string][]lava.Middleware) gateway.RPCMiddl
 				pb.StatusCode = errorpb.Code_Internal
 				pb.Code = int32(errcode.GrpcCodeToHTTP(codes.Code(errorpb.Code_Internal)))
 			}
+			log.Error().
+				Err(err).
+				Str("operation", op.FullMethod).
+				Str("request_id", reqId).
+				Int32("code", pb.Code).
+				Msg("rpc middleware rejected request")
 			return nil, nil, errcode.ConvertErr2Status(pb).Err()
 		}
 

@@ -323,7 +323,7 @@ func (s *streamHTTP) RecvMsg(m any) error {
 					return err
 				}
 				if err := codec.Unmarshal(data, msg); err != nil {
-					return status.Errorf(codes.InvalidArgument, "failed to unmarshal body by codec: %v", err)
+					return status.Errorf(codes.InvalidArgument, "failed to unmarshal body by codec, operation=%s: %v", s.method.grpcFullMethod, err)
 				}
 			} else {
 				var b json.RawMessage
@@ -332,7 +332,7 @@ func (s *streamHTTP) RecvMsg(m any) error {
 				}
 
 				if err := codec.Unmarshal(b, msg); err != nil {
-					return status.Errorf(codes.InvalidArgument, "failed to unmarshal body by codec: %v", err)
+					return status.Errorf(codes.InvalidArgument, "failed to unmarshal body by codec, operation=%s: %v", s.method.grpcFullMethod, err)
 				}
 			}
 		} else {
@@ -350,11 +350,11 @@ func (s *streamHTTP) RecvMsg(m any) error {
 					return err
 				}
 				if err := codec.Unmarshal(data, msg); err != nil {
-					return status.Errorf(codes.InvalidArgument, "failed to unmarshal body by codec: %v", err)
+					return status.Errorf(codes.InvalidArgument, "failed to unmarshal body by codec, operation=%s: %v", s.method.grpcFullMethod, err)
 				}
 			} else if len(body) > 0 {
 				if err := codec.Unmarshal(body, msg); err != nil {
-					return status.Errorf(codes.InvalidArgument, "failed to unmarshal body by codec: %v", err)
+					return status.Errorf(codes.InvalidArgument, "failed to unmarshal body by codec, operation=%s: %v", s.method.grpcFullMethod, err)
 				}
 			}
 		}
