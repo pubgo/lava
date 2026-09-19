@@ -144,7 +144,7 @@ Gateway 通过 `Content-Type` 头判断请求类型：
 - Compression flag: `0x00` = 无压缩，`0x01` = 压缩（算法见请求头 `grpc-encoding`）
 - Message length: 4 字节大端整数
 - Message: Protobuf（或协商编码）消息字节
-- gRPC 帧路径（`+proto` / `+json` / `grpc-web-text`）单条消息上限 4 MiB（`grpcMaxRecvMsgSize`，超出返回 `InvalidArgument`；浏览器侧 `sdk/js/gateway-client` 的 `MAX_MESSAGE_SIZE` 与之对齐）
+- gRPC 帧路径（`+proto` / `+json` / `grpc-web-text`）单条消息上限 4 MiB（`grpcMaxRecvMsgSize`，超出返回 `InvalidArgument`；压缩帧解压后按同一上限再查一次；浏览器侧 `sdk/js/gateway-client` 的 `MAX_MESSAGE_SIZE` 与之对齐）
 
 请求压缩需同时设置：
 - 帧标志 `0x01`

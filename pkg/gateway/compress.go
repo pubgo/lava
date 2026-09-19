@@ -151,6 +151,9 @@ func compressMessage(c Compressor, data []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// decompressMessage inflates one frame payload. The caller bounds the compressed
+// frame, not what it becomes, so the inflated size gets its own limit: a few
+// kilobytes of gzip can otherwise expand to gigabytes before anyone looks at it.
 func decompressMessage(c Compressor, data []byte) ([]byte, error) {
 	if c == nil {
 		return data, nil
@@ -159,9 +162,13 @@ func decompressMessage(c Compressor, data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	out, err := io.ReadAll(r)
+	out, err := io.ReadAll(io.LimitReader(r, grpcMaxRecvMsgSize+1))
 	if err != nil {
 		return nil, err
+	}
+	if len(out) > grpcMaxRecvMsgSize {
+		return nil, status.Errorf(codes.InvalidArgument,
+			"decompressed message too large, expected at most %d bytes", grpcMaxRecvMsgSize)
 	}
 	if closer, ok := r.(io.Closer); ok {
 		_ = closer.Close()

@@ -81,6 +81,30 @@ func TestDecodeGRPCFramePayload_CompressedWithoutEncoding(t *testing.T) {
 	}
 }
 
+func TestDecodeGRPCFramePayload_RejectsOversizedInflation(t *testing.T) {
+	// The inbound frame is capped, but a frame that fits can still inflate to
+	// gigabytes, so the decompressed size needs a bound of its own.
+	s := testStreamHTTPWithGzip(t)
+	s.handler.Request().Header.Set("Grpc-Encoding", "gzip")
+	s.snapshotRequestEncoding()
+
+	comp, err := compressMessage(s.compressorByName("gzip"), bytes.Repeat([]byte{0}, grpcMaxRecvMsgSize+1))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(comp) > grpcMaxRecvMsgSize {
+		t.Fatalf("test input must stay under the frame cap, got %d bytes", len(comp))
+	}
+
+	if _, err = s.decodeGRPCFramePayload(grpcFrameCompressed, comp); err == nil {
+		t.Fatal("expected the inflated message to be rejected")
+	}
+	st, ok := status.FromError(err)
+	if !ok || st.Code() != codes.InvalidArgument {
+		t.Fatalf("err=%v", err)
+	}
+}
+
 func TestSendMsg_CompressesWhenClientAcceptsGzip(t *testing.T) {
 	s := testStreamHTTPWithGzip(t)
 	s.handler.Request().Header.SetContentType("application/grpc-web+proto")
