@@ -166,7 +166,7 @@ func (w *fiberWebWriter) writeTrailer() error {
 		setTrailer("grpc-message", w.errMessage)
 	}
 	// Add default grpc-status if not present
-	if v := tr["Grpc-Status"]; len(v) == 0 || v[0] == "" {
+	if v := tr["grpc-status"]; len(v) == 0 || v[0] == "" {
 		setTrailer("grpc-status", "0")
 	}
 	var buf bytes.Buffer
