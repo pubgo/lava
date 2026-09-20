@@ -59,8 +59,9 @@ func seriesTags(snap tally.Snapshot, want string) []map[string]string {
 
 // histogramNames returns every recorded histogram series name.
 func histogramNames(snap tally.Snapshot) []string {
-	var out []string
-	for _, h := range snap.Histograms() {
+	histograms := snap.Histograms()
+	out := make([]string, 0, len(histograms))
+	for _, h := range histograms {
 		out = append(out, h.Name())
 	}
 	return out
