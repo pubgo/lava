@@ -15,8 +15,10 @@ const (
 // rather than in each caller.
 const (
 	// MdContentType is the caller's HTTP content type, so a lava Middleware can see
-	// it before the codec is chosen. The chain strips it from the metadata it
-	// forwards, since "content-type" is the authoritative entry.
+	// it before the codec is chosen. The gateway's HTTP frontend writes it from the
+	// request's own type before normalizing "content-type" for the gRPC-Web codec.
+	// The chain strips it from the metadata it forwards, since "content-type" is the
+	// authoritative entry.
 	MdContentType = "x-content-type"
 	// MdRemote carries the peer address to the handler chain.
 	MdRemote = "remote"

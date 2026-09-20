@@ -9,6 +9,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/metadata"
+
+	"github.com/pubgo/lava/v2/pkg/grpcutil"
 )
 
 func TestNewIncomingContext_BinHeaderDecode(t *testing.T) {
@@ -33,6 +35,39 @@ func TestNewIncomingContext_BinHeaderDecode(t *testing.T) {
 	}
 	if got := md.Get("user-agent"); len(got) != 1 || got[0] != "test-agent" {
 		t.Fatalf("whitelisted user-agent=%v", got)
+	}
+}
+
+// The gateway's own codec choice makes "content-type" authoritative downstream,
+// so it is filtered from the metadata — but the type the caller used is the only
+// record of which protocol a request arrived on, and the RPC middleware (and with
+// it the RPC metrics' proto label) reads it from grpcutil.MdContentType.
+func TestNewIncomingContext_KeepsCallerContentTypeAsMetadata(t *testing.T) {
+	h := http.Header{}
+	h.Set("content-type", "application/grpc-web+proto")
+
+	_, md := newIncomingContext(context.Background(), h)
+	if got := md.Get(grpcutil.MdContentType); len(got) != 1 || got[0] != "application/grpc-web+proto" {
+		t.Fatalf("%s=%v, want the caller's content type", grpcutil.MdContentType, got)
+	}
+	if got := md.Get("content-type"); got != nil {
+		t.Fatalf("content-type must stay filtered, got %v", got)
+	}
+}
+
+// The gRPC-Web frontend normalizes "content-type" for the codec and records the
+// caller's own type under this key, so an explicit entry has to win rather than
+// race with the normalized one over map iteration order.
+func TestNewIncomingContext_ExplicitContentTypeMetadataWins(t *testing.T) {
+	for range 20 {
+		h := http.Header{}
+		h.Set("content-type", "application/grpc+proto")
+		h.Set(grpcutil.MdContentType, "application/grpc-web-text+proto")
+
+		_, md := newIncomingContext(context.Background(), h)
+		if got := md.Get(grpcutil.MdContentType); len(got) != 1 || got[0] != "application/grpc-web-text+proto" {
+			t.Fatalf("%s=%v, want the explicit entry", grpcutil.MdContentType, got)
+		}
 	}
 }
 

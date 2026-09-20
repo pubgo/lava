@@ -17,6 +17,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
+	"github.com/pubgo/lava/v2/pkg/grpcutil"
 	"github.com/pubgo/lava/v2/pkg/httputil"
 )
 
@@ -273,6 +274,9 @@ func (f *httpFrontend) prepareGRPCWeb(ctx fiber.Ctx) (typ, enc string, ok bool, 
 		return "", "", false, fiber.NewError(fiber.StatusUpgradeRequired, "websocket requests must use the gateway WebSocket server (Mux.WebSocketHandler on net/http)")
 	}
 
+	// The codec needs a plain gRPC type from here on, so the fact that the call
+	// arrived as gRPC-Web has to be recorded where the RPC chain can still read it.
+	ctx.Request().Header.Set(grpcutil.MdContentType, ct)
 	ctx.Request().Header.SetContentType(grpcBase + "+" + enc)
 	if typ == grpcWebText {
 		if err = decodeGRPCWebTextBody(ctx); err != nil {

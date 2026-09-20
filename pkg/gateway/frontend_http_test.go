@@ -3,6 +3,7 @@ package gateway
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http/httptest"
@@ -20,6 +21,8 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/structpb"
+
+	"github.com/pubgo/lava/v2/pkg/grpcutil"
 )
 
 func TestHTTPFrontend_RejectsClientStreaming(t *testing.T) {
@@ -484,6 +487,15 @@ func TestHTTPFrontend_ServerStreamNDJSONErrorStaysHTTPOk(t *testing.T) {
 func newUnaryMux(t *testing.T, backend Backend, fullMethod string) *fiber.App {
 	t.Helper()
 
+	app, _ := unaryMux(t, backend, fullMethod)
+	return app
+}
+
+// unaryMux also hands back the mux, for tests that must install an RPC middleware
+// before the first request runs.
+func unaryMux(t *testing.T, backend Backend, fullMethod string) (*fiber.App, *Mux) {
+	t.Helper()
+
 	mux := NewMux()
 	inType, err := protoregistry.GlobalTypes.FindMessageByName("google.protobuf.Empty")
 	if err != nil {
@@ -507,7 +519,7 @@ func newUnaryMux(t *testing.T, backend Backend, fullMethod string) *fiber.App {
 
 	app := fiber.New()
 	app.All("/*", mux.Handler)
-	return app
+	return app, mux
 }
 
 func TestHTTPFrontend_MalformedGRPCWebTextBodyIsInvalidArgument(t *testing.T) {
@@ -599,5 +611,52 @@ func TestHTTPFrontend_GRPCWebJSONIsPlainJSONTransport(t *testing.T) {
 	}
 	if len(body) == 0 || body[0] != '{' {
 		t.Fatalf("want a bare JSON body, got a %d-byte body %q", len(body), body)
+	}
+}
+
+// The RPC middleware chain runs on the gateway's own choice of content type, so a
+// middleware — the RPC metrics' proto label among them — can only tell a JSON call
+// from a gRPC-Web one if the frontend passes the caller's type through. Without it
+// every protocol reads as application/grpc inside the chain.
+func TestHTTPFrontend_CallerContentTypeReachesTheRPCChain(t *testing.T) {
+	const fullMethod = "/test.v1.Echo/Ping"
+
+	for _, tc := range []struct {
+		name        string
+		contentType string
+		body        []byte
+	}{
+		{name: "json", contentType: "application/json", body: []byte(`{}`)},
+		{name: "grpc-web", contentType: "application/grpc-web+proto", body: []byte{0, 0, 0, 0, 0}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var md metadata.MD
+			app, mux := unaryMux(t, &fakeClientConn{}, fullMethod)
+			mux.UseRPCMiddleware(func(
+				ctx context.Context,
+				op *Operation,
+				next RPCHandler,
+			) (metadata.MD, metadata.MD, error) {
+				md, _ = metadata.FromIncomingContext(ctx)
+				return next(ctx)
+			})
+
+			req := httptest.NewRequest(fiber.MethodPost, fullMethod, bytes.NewReader(tc.body))
+			req.Header.Set("Content-Type", tc.contentType)
+
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer func() { _ = resp.Body.Close() }()
+			if _, err = io.Copy(io.Discard, resp.Body); err != nil {
+				t.Fatalf("drain body: %v", err)
+			}
+
+			got := md.Get(grpcutil.MdContentType)
+			if len(got) != 1 || got[0] != tc.contentType {
+				t.Fatalf("%s=%v, want the caller's %q", grpcutil.MdContentType, got, tc.contentType)
+			}
+		})
 	}
 }
