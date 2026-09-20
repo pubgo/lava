@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pubgo/funk/v2/errors/errcode"
+	"github.com/pubgo/funk/v2/proto/errorpb"
 	tally "github.com/uber-go/tally/v4"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -223,6 +225,7 @@ func TestMetricMiddlewareNormalizesProtocolLabel(t *testing.T) {
 		{"application/grpc-web+proto", "grpc-web"},
 		{"application/grpc", "grpc"},
 		{"application/json", "json"},
+		{"application/protobuf", "protobuf"},
 		{"", "other"},
 		{"application/x-lava-custom", "other"},
 	} {
@@ -272,6 +275,60 @@ func TestMetricMiddlewareCodesFailedCalls(t *testing.T) {
 				if _, ok := tags["code"]; ok {
 					t.Fatalf("the success counter must not carry a code label: %v", tags)
 				}
+			}
+		})
+	}
+}
+
+// The status an error carries can come straight off the wire: errcode.ParseError
+// returns the status's ErrCode detail unchanged, and errorpb renders a value the
+// enum does not define as its decimal number. Every such number would become its
+// own Prometheus series, so anything the enum does not name has to share one
+// bucket.
+func TestMetricMiddlewareBoundsTheCodeLabel(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		err  error
+		want string
+	}{
+		{
+			name: "named status",
+			err: errcode.ConvertErr2Status(&errorpb.ErrCode{
+				StatusCode: errorpb.Code_NotFound, Code: 404, Message: "gone",
+			}).Err(),
+			want: "NotFound",
+		},
+		{
+			name: "status the enum does not define",
+			err: errcode.ConvertErr2Status(&errorpb.ErrCode{
+				StatusCode: errorpb.Code(9999), Code: 400, Message: "boom",
+			}).Err(),
+			want: "Unknown",
+		},
+		{
+			// NewCodeErr with no code of its own leaves StatusCode at OK, and a
+			// rejected call labelled OK reads as a scrape of nothing.
+			name: "message-only lava error",
+			err:  errcode.NewCodeErr(&errorpb.ErrCode{Message: "boom"}),
+			want: "Unknown",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			scope := tally.NewTestScope("test", nil)
+			handler := metric.New(scope).Middleware(failingResponse(tc.err))
+			if _, err := handler(context.Background(), stubRequest{kind: "grpc", operation: "/demo.Demo/Call"}); err == nil {
+				t.Fatal("expected error")
+			}
+
+			snap := scope.Snapshot()
+			assertLabeled(t, snap, "lava_rpc_failed_total", map[string]string{"code": tc.want})
+			if n := len(seriesTags(snap, "lava_rpc_failed_total")); n != 1 {
+				t.Fatalf("one failure must produce one series, got %d: %v",
+					n, seriesTags(snap, "lava_rpc_failed_total"))
 			}
 		})
 	}

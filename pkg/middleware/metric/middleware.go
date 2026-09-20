@@ -8,6 +8,7 @@ import (
 
 	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/errors/errcode"
+	"github.com/pubgo/funk/v2/proto/errorpb"
 	"github.com/uber-go/tally/v4"
 
 	"github.com/pubgo/lava/v2/core/metrics"
@@ -23,6 +24,10 @@ const (
 	rpcFailedTotal    = "lava_rpc_failed_total"
 	rpcHandlingSecond = "lava_rpc_handling_seconds"
 )
+
+// codeUnspecified is the single bucket for every status the errorpb enum does
+// not name, so an unexpected code cannot add a series of its own.
+const codeUnspecified = "Unknown"
 
 // Fast gateway RPCs are the majority, and a histogram that starts at 100ms puts
 // every one of them in the same bucket: the number that matters most is the one
@@ -63,19 +68,34 @@ func protocol(contentType string) string {
 		return "grpc"
 	case strings.Contains(contentType, "json"):
 		return "json"
+	case strings.Contains(contentType, "protobuf"):
+		return "protobuf"
 	default:
 		return "other"
 	}
 }
 
-// codeOf labels a failure with the status the caller actually receives. errcode
-// reports a bare Go error, which carries no status, as Unknown.
+// codeOf labels a failure with the status the caller actually receives. The
+// value can arrive off the wire — errcode.ParseError hands back a status's
+// ErrCode detail unchanged — so it is resolved through the enum's own name
+// table: a code it does not define shares one bucket rather than minting a
+// series per number, and OK is not a status a rejected call can honestly report.
 func codeOf(err error) string {
 	pb := errcode.ParseError(err)
 	if pb == nil {
-		return "Unknown"
+		return codeUnspecified
 	}
-	return pb.GetStatusCode().String()
+
+	code := pb.GetStatusCode()
+	if code == errorpb.Code_OK {
+		return codeUnspecified
+	}
+
+	name, ok := errorpb.Code_name[int32(code)]
+	if !ok {
+		return codeUnspecified
+	}
+	return name
 }
 
 // recordsRPCs reports whether this request is something the series can describe.
