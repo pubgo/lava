@@ -31,7 +31,7 @@ v2 尚未正式发布，发版前优先删除历史兼容层，避免首次发�
 |----|------|
 | `HasLocalIPddr`（拼写错误） | `HasLocalIPAddr` |
 | `grpc-server-info` debug vars | `gateway-server-info` |
-| metric 名 `grpc_server_rpc_*` | `lava_rpc_*`（带 `side`/`kind` 等 label，见 `pkg/gateway/docs/internals.md` 的「指标」一节） |
+| metric 名 `grpc_server_rpc_*` → `gateway_server_rpc_*`（2.2.0） | `lava_rpc_*`（带 `side`/`kind` 等 label，见 `pkg/gateway/docs/internals.md` 的「指标」一节） |
 
 ## 配置示例
 

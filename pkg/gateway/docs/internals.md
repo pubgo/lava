@@ -56,7 +56,7 @@ func (d *Dispatcher) Dispatch(
 
 ## 指标
 
-`pkg/gateway` 自己不产指标（不依赖 metrics 包）。RPC 指标由 `pkg/middleware/metric` 在 RPC 中间件链内产生——`servers/gatewayserver` 把它装进 `UseRPCMiddleware` 的链——所以 HTTP/gRPC-Web、native gRPC、WebSocket 四条前端与本地、proxy 两种后端共用同一份计数。
+`pkg/gateway` 自己不产指标（不依赖 metrics 包）。RPC 指标由 `pkg/middleware/metric` 在 RPC 中间件链内产生——`servers/gatewayserver` 把它装进 `UseRPCMiddleware` 的链——所以 HTTP/gRPC-Web、native gRPC、WebSocket 四条前端共用同一份计数。
 
 | 序列 | 类型 | label |
 |------|------|-------|
@@ -64,11 +64,12 @@ func (d *Dispatcher) Dispatch(
 | `lava_rpc_failed_total` | counter | 同上，另加 `code` |
 | `lava_rpc_handling_seconds` | histogram | 同 `lava_rpc_total` |
 
-- `side`、`kind` 不能省：这个 middleware 同时被 `servers/zrpcs`、`clients/zrpcc`、`clients/grpcc`、`clients/resty` 安装，没有它们，客户端调用会和服务端调用落进同一条序列。
-- `proto` 是 content type 归一后的闭集（`grpc` / `grpc-web` / `json` / `other`）。content type 来自调用方的 metadata，原样当 label 就是无界基数。
+- `side`、`kind` 不能省：同一个 middleware 还被 `servers/zrpcs`、`servers/https`、`clients/zrpcc`、`clients/resty` 安装，没有它们，客户端调用会和服务端调用落进同一条序列。
+- `proto` 是 content type 归一后的闭集（`grpc` / `grpc-web` / `json` / `protobuf` / `other`）：content type 是调用方给的字符串，原样当 label 就是无界基数。`content-type` 是保留头，gRPC-Web 分支还会把它改写成 codec 需要的 `application/grpc+enc`，所以前端在改写前把调用方的原始类型记进 `x-content-type`（`grpcutil.MdContentType`），链从那个键读。WebSocket 与 native gRPC 透传都是 `grpc`。
+- `code` 取自 `errorpb` 的枚举名表，不用 `Code.String()`：状态码可能来自后端 status 的 detail，枚举没定义的值（含 `OK`）统一落进 `Unknown`，否则每个数字都是一条新序列。
 - 抓取路径是 `/debug/metrics`：`core/metrics/drivers/prometheus` 把 reporter 的 handler 注册在 debug app 上，而各 server 把 debug app 挂在 `/debug` 下。
 
-链之外的事件不进指标，只有日志：路由未命中（`GetRouterTarget`）、`httpFrontend` 的 426 拒绝、`Mux.DispatchFrontend` 的预读失败，都在进入 `Mux.Dispatch` 之前返回；`gateway.TransparentHandler` 用的是免中间件的 `Dispatcher.DispatchFrontend`，那条路径连 accesslog 都不经过。`servers/https` 的 REST 路由与 `clients/resty` 同样不产指标（它们的操作名是 `VERB /path`）。时延从链内起算，不含路由匹配与响应成帧。
+链之外的事件不进指标，只有日志：路由未命中（`GetRouterTarget`）、`httpFrontend` 的 426 拒绝、`Mux.DispatchFrontend` 的预读失败，都在进入 `Mux.Dispatch` 之前返回；`gateway.TransparentHandler` 用的是免中间件的 `Dispatcher.DispatchFrontend`，那条路径连 accesslog 都不经过。链内也不是全覆盖：`handlerRPCMiddle` 按服务名从 `srvMidMap` 取链，这张表只由 `GrpcRouter` 填充，所以注册进外部 `Mux`（`Params.Gw`）或由 `pkg/zrpcbridge` 桥接进来的操作拿到的是空链——没有指标，也没有 accesslog 与 recovery。`servers/https` 的 REST 路由与 `clients/resty` 同样不产指标（Kind 是 `http`，操作名是 `VERB /path`）。时延从链内起算，不含路由匹配与响应成帧。
 
 ## 路径解析
 
