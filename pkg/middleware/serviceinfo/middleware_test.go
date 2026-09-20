@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/grpcutil"
 	"github.com/pubgo/lava/v2/pkg/httputil"
+	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/lavacontexts"
 	"github.com/pubgo/lava/v2/pkg/middleware/serviceinfo"
 )
