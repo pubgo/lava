@@ -1,0 +1,25 @@
+# markview → GitHub Pages (reusable workflow from pubgo/markview)
+#
+# Prerequisites:
+#   Settings → Pages → Source = GitHub Actions
+
+name: pages
+
+on:
+  push:
+    branches:
+      - v2
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  pages:
+    uses: pubgo/markview/.github/workflows/pages-reusable.yml@master
+    with:
+      build-path: "docs"
+      # base-path defaults to /lava (repository name)
+      # markview-version: "latest"
