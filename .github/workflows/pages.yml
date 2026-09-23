@@ -1,4 +1,4 @@
-# markview → GitHub Pages (reusable workflow from pubgo/markview)
+# Build docs/ with markview and deploy to GitHub Pages.
 #
 # Prerequisites:
 #   Settings → Pages → Source = GitHub Actions
@@ -16,10 +16,48 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
-  pages:
-    uses: pubgo/markview/.github/workflows/pages-reusable.yml@master
-    with:
-      build-path: "docs"
-      # base-path defaults to /lava (repository name)
-      # markview-version: "latest"
+  build:
+    name: Build static site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version: stable
+          cache: false
+
+      - name: Install markview
+        run: |
+          go install github.com/kooksee/markview@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Build static site
+        run: markview build docs -o site --base-path /${{ github.event.repository.name }}
+
+      - name: Configure Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
