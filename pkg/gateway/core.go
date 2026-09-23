@@ -22,6 +22,9 @@ type MethodRoute struct {
 }
 
 // Operation describes a registered RPC method and its schema.
+// It is the single source of truth for dispatch (full method, message types,
+// stream mode, rpc meta). HTTP routing indexes into the registry by FullMethod
+// via routerTree; it does not duplicate schema fields.
 type Operation struct {
 	FullMethod string
 	InputType  protoreflect.MessageType
@@ -34,13 +37,18 @@ func operationFromMethod(mth *methodWrapper) *Operation {
 	if mth == nil {
 		return nil
 	}
-	return &Operation{
+	if mth.op != nil {
+		return mth.op
+	}
+	// Lazy build for test helpers that inject methodWrapper without registerRouter.
+	mth.op = &Operation{
 		FullMethod: mth.grpcFullMethod,
 		InputType:  mth.inputType,
 		OutputType: mth.outputType,
 		StreamDesc: mth.grpcStreamDesc,
 		Meta:       mth.meta,
 	}
+	return mth.op
 }
 
 // Dispatcher routes frontend streams to a Backend, handling unary,

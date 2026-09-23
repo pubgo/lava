@@ -288,38 +288,35 @@ mux.SetResponseEncoder(
 
 ```go
 mux := gateway.NewMux(
-    // 最大接收消息大小（默认 4MB）
-    gateway.MaxReceiveMessageSizeOption(4 * 1024 * 1024),
-    
-    // 最大发送消息大小
-    gateway.MaxSendMessageSizeOption(4 * 1024 * 1024),
-    
-    // 连接超时（默认 120s）
-    gateway.ConnectionTimeoutOption(120 * time.Second),
-    
-    // 自定义编解码器
-    gateway.CodecOption("application/xml", xmlCodec),
-    
-    // 自定义压缩器
-    gateway.CompressorOption("gzip", gzipCompressor),
+    // 按 Content-Type 覆盖/注册编解码器（默认已含 application/json、application/protobuf）
+    gateway.WithCodec("application/json", gateway.CodecJSON{}),
 )
 ```
 
+> 消息压缩：HTTP/gRPC-Web 帧路径支持 `grpc-encoding` / `grpc-accept-encoding` 协商（默认注册 `gzip`）。请求帧压缩标志为 `0x01` 时按请求编码解压；响应在客户端接受时压缩并回写 `Grpc-Encoding`。
+
 ## 错误处理
 
-Gateway 自动将 gRPC 错误码映射为 HTTP 状态码：
+HTTP/JSON 前端将 gRPC 错误码映射为 HTTP 状态码，并返回 JSON：`{"code":N,"message":"..."}`。
+gRPC-Web 则写入 `grpc-status` / `grpc-message` 并由 trailer 帧带回客户端。
+server-stream（NDJSON）的 200 已经发出，无法再改状态码，失败时流末尾追加一行 `{"error":{"code":N,"message":"..."}}`（包一层 `error` 是为了和可能长成 `{code,message}` 的数据行区分）。
 
 | gRPC Code | HTTP Status |
 |-----------|-------------|
 | OK | 200 |
+| Canceled | 499 |
 | InvalidArgument | 400 |
 | Unauthenticated | 401 |
 | PermissionDenied | 403 |
 | NotFound | 404 |
 | AlreadyExists | 409 |
 | ResourceExhausted | 429 |
+| Unimplemented | 501（HTTP 前端拒绝 client-stream / bidi） |
 | Internal | 500 |
+| DeadlineExceeded | 504 |
 | Unavailable | 503 |
+
+完整映射见 [实现细节](internals.md#错误码映射)。
 
 在服务中返回 gRPC 错误：
 
@@ -334,10 +331,19 @@ func (s *userService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.
 }
 ```
 
+### 拦截器作用范围
+
+- **`UseRPCMiddleware`**：包装整段 `Dispatch` / `DispatchFrontend`（unary + 全部流模式，本地与 proxy 一致）。需要完整 RPC 生命周期（如 lava Middleware）挂这里；请求体见 `IncomingPayload`。
+- **`UseBackendUnaryInterceptor` / `UseBackendStreamInterceptor`**：包装 `Mux.Invoke` / `NewStream`，**本地与 `RegisterProxy` 都会经过**。调用边界横切挂这里。
+- **`SetUnaryInterceptor` / `SetStreamInterceptor`**：仅作用于 `RegisterService` 的进程内 handler（`inprocgrpc` server interceptor），兼容层；新横切优先 RPC / Backend 链（见 [design-evolution.md](design-evolution.md)）。
+
+> **直接以 Mux 当 gRPC client 的调用**（`pb.NewXxxClient(mux)`）只经过 Backend 链，**不经过** `UseRPCMiddleware`：RPC 中间件要在整段流结束后收尾，而 `Invoke`/`NewStream` 在流开始时就返回了。v2 把 lava 中间件挂在 inproc 通道上，因此这类调用也被覆盖；迁移时若依赖这一点，把横切改挂 `UseBackend*`（或让调用方走前端 / `DispatchFrontend`）。
+
 ## 最佳实践
 
 1. **使用 HTTP Rule 注解**：在 Protobuf 中定义路由，而不是手动注册
 2. **合理使用 body 映射**：只映射需要的字段，减少数据传输
-3. **使用拦截器**：统一处理日志、认证、监控等横切关注点
-4. **错误处理**：使用标准的 gRPC 错误码，Gateway 会自动映射
+3. **使用拦截器**：完整 RPC 横切用 `UseRPCMiddleware`；调用边界用 `UseBackend*`；本地 handler 细节可用 `SetUnary/StreamInterceptor`
+4. **错误处理**：使用标准的 gRPC 错误码，HTTP/JSON 前端会自动映射状态码
 5. **进程内调用**：优先使用本地服务注册，避免网络开销
+6. **流式 RPC**：client/bidi 请走 WebSocket 或 Native gRPC，不要依赖 HTTP/REST

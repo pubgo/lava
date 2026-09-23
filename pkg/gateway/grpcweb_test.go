@@ -1,13 +1,12 @@
 package gateway
 
 import (
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIsWebRequest(t *testing.T) {
+func TestIsWebRequestFromContentType(t *testing.T) {
 	tests := []struct {
 		name        string
 		contentType string
@@ -19,13 +18,12 @@ func TestIsWebRequest(t *testing.T) {
 		{"invalid method", "application/grpc-web+proto", "GET", false},
 		{"invalid content-type", "application/json", "POST", false},
 		{"no subtype", "application/grpc-web", "POST", true},
+		{"json alias is plain JSON, not grpc-web", "application/grpc-web-json", "POST", false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest(tt.method, "/", nil)
-			req.Header.Set("Content-Type", tt.contentType)
-			_, _, ok := isWebRequest(req)
+			_, _, ok := isWebRequestFromContentType(tt.contentType, tt.method)
 			assert.Equal(t, tt.expected, ok)
 		})
 	}

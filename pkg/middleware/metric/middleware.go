@@ -2,10 +2,13 @@ package metric
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/pubgo/funk/v2"
+	"github.com/pubgo/funk/v2/errors/errcode"
+	"github.com/pubgo/funk/v2/proto/errorpb"
 	"github.com/uber-go/tally/v4"
 
 	"github.com/pubgo/lava/v2/core/metrics"
@@ -16,21 +19,90 @@ import (
 // ref: https://github.com/grpc-ecosystem/go-grpc-middleware/blob/v2/providers/openmetrics/server_metrics.go
 //		https://github.com/grpc-ecosystem/go-grpc-middleware/blob/v2/providers/openmetrics/server_options.go
 
-var requestDurationBucket = tally.DurationBuckets{100 * time.Millisecond, 300 * time.Millisecond, 1200 * time.Millisecond, 5000 * time.Millisecond, 10000 * time.Millisecond}
+const (
+	rpcTotal          = "lava_rpc_total"
+	rpcFailedTotal    = "lava_rpc_failed_total"
+	rpcHandlingSecond = "lava_rpc_handling_seconds"
+)
 
-// Total number of rpc call started on the server.
-func gatewayServerRpcCallTotal(m metrics.Metric, method string) {
-	m.Tagged(metrics.Tags{"method": method}).Counter("gateway_server_rpc_total").Inc(1)
+// codeUnspecified is the single bucket for every status the errorpb enum does
+// not name, so an unexpected code cannot add a series of its own.
+const codeUnspecified = "Unknown"
+
+// Fast gateway RPCs are the majority, and a histogram that starts at 100ms puts
+// every one of them in the same bucket: the number that matters most is the one
+// with no resolution.
+var requestDurationBucket = tally.DurationBuckets{
+	5 * time.Millisecond, 25 * time.Millisecond, 50 * time.Millisecond,
+	100 * time.Millisecond, 300 * time.Millisecond,
+	1200 * time.Millisecond, 5000 * time.Millisecond, 10000 * time.Millisecond,
 }
 
-func gatewayServerRpcErrTotal(m metrics.Metric, method string) {
-	m.Tagged(metrics.Tags{"method": method}).Counter("gateway_server_rpc_failed_total").Inc(1)
+// side, kind, proto and stream are label values drawn from a request, so this is
+// the whole set of series the middleware can produce.
+func requestTags(req lava.Request) metrics.Tags {
+	return metrics.Tags{
+		"side":    side(req),
+		"kind":    req.Kind(),
+		"service": req.Service(),
+		"method":  req.Operation(),
+		"stream":  strconv.FormatBool(req.Stream()),
+		"proto":   protocol(req.ContentType()),
+	}
 }
 
-func gatewayServerHandlingSecondsCount(m metrics.Metric, method string, val time.Duration) {
-	m.Tagged(metrics.Tags{"method": method}).
-		Histogram("gateway_server_handling_seconds_count", requestDurationBucket).
-		RecordDuration(val)
+func side(req lava.Request) string {
+	if req.Client() {
+		return "client"
+	}
+	return "server"
+}
+
+// protocol maps a content type onto a closed set. The gateway takes it from
+// caller-supplied request metadata, so the raw value would be an unbounded label.
+func protocol(contentType string) string {
+	switch {
+	case strings.Contains(contentType, "grpc-web"):
+		return "grpc-web"
+	case strings.HasPrefix(contentType, "application/grpc"):
+		return "grpc"
+	case strings.Contains(contentType, "json"):
+		return "json"
+	case strings.Contains(contentType, "protobuf"):
+		return "protobuf"
+	default:
+		return "other"
+	}
+}
+
+// codeOf labels a failure with the status the caller actually receives. The
+// value can arrive off the wire — errcode.ParseError hands back a status's
+// ErrCode detail unchanged — so it is resolved through the enum's own name
+// table: a code it does not define shares one bucket rather than minting a
+// series per number, and OK is not a status a rejected call can honestly report.
+func codeOf(err error) string {
+	pb := errcode.ParseError(err)
+	if pb == nil {
+		return codeUnspecified
+	}
+
+	code := pb.GetStatusCode()
+	if code == errorpb.Code_OK {
+		return codeUnspecified
+	}
+
+	name, ok := errorpb.Code_name[int32(code)]
+	if !ok {
+		return codeUnspecified
+	}
+	return name
+}
+
+// recordsRPCs reports whether this request is something the series can describe.
+// HTTP traffic is out of scope on purpose: serverhttp and the resty client name
+// their operation "VERB /path", and that path is caller-influenced.
+func recordsRPCs(req lava.Request) bool {
+	return req.Kind() != lava.RequestKindHttp && !strings.Contains(req.Operation(), " ")
 }
 
 func New(m metrics.Metric) *MetricMiddleware {
@@ -47,19 +119,20 @@ func (m MetricMiddleware) String() string { return "metric" }
 
 func (m MetricMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 	return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
-		if req.Kind() == "http" || strings.Contains(req.Operation(), " ") {
+		if !recordsRPCs(req) {
 			return next(ctx, req)
 		}
 
 		now := time.Now()
-		gatewayServerRpcCallTotal(m.m, req.Operation())
+		tagged := m.m.Tagged(requestTags(req))
+		tagged.Counter(rpcTotal).Inc(1)
 
 		defer func() {
 			if !funk.IsNil(gErr) {
-				gatewayServerRpcErrTotal(m.m, req.Operation())
+				tagged.Tagged(metrics.Tags{"code": codeOf(gErr)}).Counter(rpcFailedTotal).Inc(1)
 			}
 
-			gatewayServerHandlingSecondsCount(m.m, req.Operation(), time.Since(now))
+			tagged.Histogram(rpcHandlingSecond, requestDurationBucket).RecordDuration(time.Since(now))
 		}()
 
 		return next(ctx, req)

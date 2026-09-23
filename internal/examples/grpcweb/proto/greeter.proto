@@ -73,7 +73,7 @@ message GoodbyeResponse {
 message WatchHelloRequest {
   // 用户名称
   string name = 1;
-  // 推送消息条数，默认 3
+  // 推送条数；0 表示订阅模式，持续推送直到客户端取消
   int32 count = 2;
 }
 

@@ -1,0 +1,193 @@
+package gateway
+
+import (
+	"bytes"
+	"io"
+	"sort"
+	"strings"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+const (
+	grpcEncodingIdentity = "identity"
+	grpcEncodingGzip     = "gzip"
+
+	// A gRPC frame is one flag byte, a big-endian 4-byte length, then the payload.
+	// The flag bits are the compression and trailer markers; the trailer bit is how
+	// gRPC-Web reports status after the response head is already on the wire.
+	grpcFrameHeaderSize  = 5
+	grpcFrameCompressed  = 0x01
+	grpcFrameTrailerFlag = 1 << 7
+)
+
+func errUnsupportedGRPCEncoding(enc string) error {
+	if enc == "" {
+		return status.Error(codes.Unimplemented, "compressed gRPC frame requires grpc-encoding")
+	}
+	return status.Errorf(codes.Unimplemented, "unsupported grpc-encoding %q", enc)
+}
+
+func normalizeContentCoding(name string) string {
+	return strings.ToLower(strings.TrimSpace(name))
+}
+
+func (s *streamHTTP) compressorByName(name string) Compressor {
+	name = normalizeContentCoding(name)
+	if name == "" || name == grpcEncodingIdentity {
+		return nil
+	}
+	if s.method == nil || s.method.srv == nil || s.method.srv.opts == nil {
+		return nil
+	}
+	c := s.method.srv.opts.compressors[name]
+	if c == nil {
+		return nil
+	}
+	return c
+}
+
+func (s *streamHTTP) supportedAcceptEncoding() string {
+	names := make([]string, 0, 2)
+	if s.method != nil && s.method.srv != nil && s.method.srv.opts != nil {
+		for name, c := range s.method.srv.opts.compressors {
+			if c == nil || normalizeContentCoding(name) == grpcEncodingIdentity {
+				continue
+			}
+			names = append(names, normalizeContentCoding(name))
+		}
+	}
+	if len(names) == 0 {
+		return grpcEncodingIdentity
+	}
+	sort.Strings(names)
+	preferred := make([]string, 0, len(names)+1)
+	rest := make([]string, 0, len(names))
+	for _, n := range names {
+		if n == grpcEncodingGzip {
+			preferred = append(preferred, grpcEncodingGzip)
+			continue
+		}
+		rest = append(rest, n)
+	}
+	preferred = append(preferred, rest...)
+	preferred = append(preferred, grpcEncodingIdentity)
+	return strings.Join(preferred, ",")
+}
+
+func (s *streamHTTP) negotiateResponseCompressor(acceptEncoding string) (Compressor, string) {
+	for _, part := range strings.Split(acceptEncoding, ",") {
+		name := normalizeContentCoding(part)
+		// Strip q-value if present: "gzip;q=1.0"
+		if i := strings.IndexByte(name, ';'); i >= 0 {
+			name = strings.TrimSpace(name[:i])
+		}
+		if name == "" || name == grpcEncodingIdentity || name == "*" {
+			continue
+		}
+		if c := s.compressorByName(name); c != nil {
+			return c, name
+		}
+	}
+	return nil, ""
+}
+
+func (s *streamHTTP) ensureResponseCompression() {
+	if s.compNegotiated {
+		return
+	}
+	s.compNegotiated = true
+
+	s.setResponseHeader("Grpc-Accept-Encoding", s.supportedAcceptEncoding())
+
+	accept := s.reqGRPCAcceptEncoding
+	if c, name := s.negotiateResponseCompressor(accept); c != nil {
+		s.respCompressor = c
+		s.setResponseHeader("Grpc-Encoding", name)
+	}
+}
+
+// snapshotRequestEncoding copies the inbound gRPC compression headers. Call it
+// while the handler goroutine still owns the request; fasthttp peeks are exact
+// byte matches once header normalization is disabled, so both spellings are kept.
+func (s *streamHTTP) snapshotRequestEncoding() {
+	s.reqGRPCEncoding = s.peekRequestHeader("Grpc-Encoding")
+	if s.reqGRPCEncoding == "" {
+		s.reqGRPCEncoding = s.peekRequestHeader("grpc-encoding")
+	}
+	s.reqGRPCAcceptEncoding = s.peekRequestHeader("Grpc-Accept-Encoding")
+	if s.reqGRPCAcceptEncoding == "" {
+		s.reqGRPCAcceptEncoding = s.peekRequestHeader("grpc-accept-encoding")
+	}
+}
+
+func (s *streamHTTP) peekRequestHeader(key string) string {
+	if s.fctx != nil {
+		return string(s.fctx.Request.Header.Peek(key))
+	}
+	if s.handler != nil {
+		return string(s.handler.Request().Header.Peek(key))
+	}
+	return ""
+}
+
+func compressMessage(c Compressor, data []byte) ([]byte, error) {
+	if c == nil {
+		return data, nil
+	}
+	var buf bytes.Buffer
+	w, err := c.Compress(&buf)
+	if err != nil {
+		return nil, err
+	}
+	if _, err = w.Write(data); err != nil {
+		_ = w.Close()
+		return nil, err
+	}
+	if err = w.Close(); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// decompressMessage inflates one frame payload. The caller bounds the compressed
+// frame, not what it becomes, so the inflated size gets its own limit: a few
+// kilobytes of gzip can otherwise expand to gigabytes before anyone looks at it.
+func decompressMessage(c Compressor, data []byte) ([]byte, error) {
+	if c == nil {
+		return data, nil
+	}
+	r, err := c.Decompress(bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+	out, err := io.ReadAll(io.LimitReader(r, grpcMaxRecvMsgSize+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(out) > grpcMaxRecvMsgSize {
+		return nil, status.Errorf(codes.InvalidArgument,
+			"decompressed message too large, expected at most %d bytes", grpcMaxRecvMsgSize)
+	}
+	if closer, ok := r.(io.Closer); ok {
+		_ = closer.Close()
+	}
+	return out, nil
+}
+
+func (s *streamHTTP) requestEncoding() string {
+	return normalizeContentCoding(s.reqGRPCEncoding)
+}
+
+func (s *streamHTTP) decodeGRPCFramePayload(flags byte, payload []byte) ([]byte, error) {
+	if flags&grpcFrameCompressed == 0 {
+		return payload, nil
+	}
+	enc := s.requestEncoding()
+	c := s.compressorByName(enc)
+	if c == nil {
+		return nil, errUnsupportedGRPCEncoding(enc)
+	}
+	return decompressMessage(c, payload)
+}
