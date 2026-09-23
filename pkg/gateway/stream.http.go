@@ -343,8 +343,16 @@ func (s *streamHTTP) RecvMsg(m any) error {
 					return status.Error(codes.InvalidArgument, "invalid gRPC frame: too short")
 				}
 				length := binary.BigEndian.Uint32(body[1:grpcFrameHeaderSize])
-				if len(body) < int(grpcFrameHeaderSize+length) {
-					return status.Errorf(codes.InvalidArgument, "invalid gRPC frame: expected %d bytes, got %d", grpcFrameHeaderSize+length, len(body))
+				// Same cap as the streamed branch: length is attacker-controlled and
+				// grpcFrameHeaderSize+length must not wrap uint32 before the slice.
+				if length > grpcMaxRecvMsgSize {
+					return status.Errorf(codes.InvalidArgument,
+						"invalid gRPC frame: message too large, expected at most %d bytes, got %d",
+						grpcMaxRecvMsgSize, length)
+				}
+				need := uint64(grpcFrameHeaderSize) + uint64(length)
+				if uint64(len(body)) < need {
+					return status.Errorf(codes.InvalidArgument, "invalid gRPC frame: expected %d bytes, got %d", need, len(body))
 				}
 				data, err := s.decodeGRPCFramePayload(body[0], body[grpcFrameHeaderSize:grpcFrameHeaderSize+length])
 				if err != nil {

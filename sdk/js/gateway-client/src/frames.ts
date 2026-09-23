@@ -143,9 +143,44 @@ export async function gzipDecompress(data: Uint8Array): Promise<Uint8Array> {
   if (typeof DecompressionStream === "undefined") {
     throw new Error("gzip decompression requires DecompressionStream (modern browsers / Node 18+)");
   }
+  // Mirror pkg/gateway decompressMessage: inflate into a bounded buffer so a
+  // tiny compressed frame cannot expand past MAX_MESSAGE_SIZE in the client.
   const stream = new Blob([data as BlobPart]).stream().pipeThrough(new DecompressionStream("gzip"));
-  const ab = await new Response(stream).arrayBuffer();
-  return new Uint8Array(ab);
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value.byteLength === 0) continue;
+      if (total + value.byteLength > MAX_MESSAGE_SIZE) {
+        try {
+          await reader.cancel();
+        } catch {
+          // ignore cancel errors; the size bound is what matters
+        }
+        throw new Error(
+          `gzip decompressed message exceeds limit: >${MAX_MESSAGE_SIZE} bytes`,
+        );
+      }
+      total += value.byteLength;
+      chunks.push(value);
+    }
+  } finally {
+    try {
+      reader.releaseLock();
+    } catch {
+      // already cancelled / released
+    }
+  }
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, off);
+    off += chunk.byteLength;
+  }
+  return out;
 }
 
 export { TRAILER_FLAG, COMPRESSED_FLAG };

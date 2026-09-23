@@ -84,4 +84,18 @@ describe("encodeFrame / decodeFrames", () => {
     const reader = new GrpcWebFrameReader();
     assert.throws(() => reader.push(header), overCap);
   });
+
+  it("rejects gzip inflate past MAX_MESSAGE_SIZE", async () => {
+    // A tiny compressed payload can expand past 4 MiB; mirror Go LimitReader.
+    const { gzipCompress, gzipDecompress } = await import("../dist/frames.js");
+    const compressed = await gzipCompress(new Uint8Array(MAX_MESSAGE_SIZE + 1));
+    assert.ok(compressed.byteLength < MAX_MESSAGE_SIZE, "fixture must stay small on the wire");
+    await assert.rejects(
+      () => gzipDecompress(compressed),
+      (err) => {
+        assert.match(String(err?.message ?? err), /exceeds limit/);
+        return true;
+      },
+    );
+  });
 });

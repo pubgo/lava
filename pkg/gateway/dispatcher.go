@@ -261,6 +261,14 @@ func (d *Dispatcher) dispatchBidi(
 		case s2cErr := <-s2cErrChan:
 			if s2cErr == io.EOF {
 				if err = localStream.CloseSend(); err != nil {
+					// CloseSend failed after the client half finished: still wait for
+					// the backend→frontend pump so trailers/status are available, and
+					// prefer an already-completed backend RPC error over transport noise.
+					c2sErr := <-c2sErrChan
+					frontend.SetTrailer(localStream.Trailer())
+					if c2sErr != io.EOF && c2sErr != nil {
+						return c2sErr
+					}
 					return errors.WrapCaller(err)
 				}
 			} else if s2cErr != nil {

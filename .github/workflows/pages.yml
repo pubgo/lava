@@ -53,7 +53,10 @@ jobs:
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       - name: Build static site
-        run: markview build **/*.md -o site --base-path /${{ github.event.repository.name }}
+        run: |
+          # Directory inputs keep nested docs (e.g. pkg/gateway/docs) without relying
+          # on bash globstar; **/*.md under default GHA bash silently drops them.
+          markview build docs pkg/gateway/docs -o site --base-path /${{ github.event.repository.name }}
 
       - name: Configure Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0

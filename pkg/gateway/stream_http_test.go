@@ -93,6 +93,54 @@ func TestStreamHTTP_RecvMsg_RejectsOversizedStreamedGRPCFrame(t *testing.T) {
 	}
 }
 
+func TestStreamHTTP_RecvMsg_RejectsOversizedBufferedGRPCFrame(t *testing.T) {
+	// Server-stream HTTP snapshots the body into reqBody and clears handler, so
+	// RecvMsg takes the buffered branch. It must apply the same length cap as the
+	// streamed path — including MaxUint32, which used to wrap 5+length.
+	inType, err := protoregistry.GlobalTypes.FindMessageByName("google.protobuf.Empty")
+	if err != nil {
+		t.Fatalf("find input type: %v", err)
+	}
+
+	tests := []struct {
+		name   string
+		length uint32
+	}{
+		{name: "one byte over the limit", length: grpcMaxRecvMsgSize + 1},
+		{name: "client claims max uint32", length: math.MaxUint32},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			header := make([]byte, grpcFrameHeaderSize)
+			binary.BigEndian.PutUint32(header[1:grpcFrameHeaderSize], tt.length)
+
+			s := &streamHTTP{
+				reqBody:   header,
+				reqCT:     "application/grpc-web+proto",
+				reqMethod: http.MethodPost,
+				ctx:       context.Background(),
+				method: &methodWrapper{
+					srv:            &serviceWrapper{opts: NewMux().opts},
+					inputType:      inType,
+					grpcStreamDesc: &grpc.StreamDesc{ServerStreams: true},
+				},
+			}
+
+			err = s.RecvMsg(&emptypb.Empty{})
+			if err == nil {
+				t.Fatalf("RecvMsg accepted a %d byte buffered frame", tt.length)
+			}
+			if got := status.Convert(err).Code(); got != codes.InvalidArgument {
+				t.Fatalf("code=%s want InvalidArgument, err=%v", got, err)
+			}
+			if !strings.Contains(err.Error(), "too large") {
+				t.Fatalf("err=%v want a frame-size rejection", err)
+			}
+		})
+	}
+}
+
 func TestStreamHTTP_RecvMsg_AcceptsEmptyStreamedGRPCFrame(t *testing.T) {
 	inType, err := protoregistry.GlobalTypes.FindMessageByName("google.protobuf.Empty")
 	if err != nil {

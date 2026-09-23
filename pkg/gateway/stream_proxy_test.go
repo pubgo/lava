@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -124,6 +125,88 @@ func TestIsDuplicateHeaderError(t *testing.T) {
 		})
 	}
 }
+
+func TestDispatchBidi_CloseSendErrorStillSetsTrailer(t *testing.T) {
+	// When the client half finishes and CloseSend fails, the dispatcher must still
+	// attach backend trailers so the frontend sees grpc-status / custom trailers.
+	inType, err := protoregistry.GlobalTypes.FindMessageByName("google.protobuf.Empty")
+	if err != nil {
+		t.Fatalf("find input type: %v", err)
+	}
+	outType := inType
+
+	closeErr := errors.New("close-send failed")
+	backendStream := &bidiCloseSendClientStream{
+		trailer:  metadata.Pairs("grpc-status", "0", "x-trail", "ok"),
+		closeErr: closeErr,
+		closed:   make(chan struct{}),
+	}
+	frontend := &bidiCloseSendServerStream{}
+	backend := &bidiCloseSendBackend{stream: backendStream}
+
+	op := &Operation{
+		FullMethod: "/test.v1.Echo/Bidi",
+		InputType:  inType,
+		OutputType: outType,
+		StreamDesc: &grpc.StreamDesc{ClientStreams: true, ServerStreams: true},
+	}
+
+	d := &Dispatcher{}
+	err = d.dispatchBidi(context.Background(), backend, frontend, op, dispatchConfig{})
+	if !errors.Is(err, closeErr) {
+		t.Fatalf("want CloseSend error wrapped, got %v", err)
+	}
+	if got := frontend.trailer.Get("x-trail"); len(got) != 1 || got[0] != "ok" {
+		t.Fatalf("trailer not set after CloseSend failure, got=%v", frontend.trailer)
+	}
+	if got := frontend.trailer.Get("grpc-status"); len(got) != 1 || got[0] != "0" {
+		t.Fatalf("grpc-status trailer missing, got=%v", frontend.trailer)
+	}
+}
+
+type bidiCloseSendBackend struct {
+	stream grpc.ClientStream
+}
+
+func (b *bidiCloseSendBackend) Invoke(context.Context, string, any, any, ...grpc.CallOption) error {
+	return errors.New("unexpected Invoke")
+}
+func (b *bidiCloseSendBackend) NewStream(context.Context, *grpc.StreamDesc, string, ...grpc.CallOption) (grpc.ClientStream, error) {
+	return b.stream, nil
+}
+
+type bidiCloseSendClientStream struct {
+	trailer  metadata.MD
+	closeErr error
+	closed   chan struct{}
+	once     sync.Once
+}
+
+func (s *bidiCloseSendClientStream) Header() (metadata.MD, error) { return nil, nil }
+func (s *bidiCloseSendClientStream) Trailer() metadata.MD         { return s.trailer }
+func (s *bidiCloseSendClientStream) CloseSend() error {
+	s.once.Do(func() { close(s.closed) })
+	return s.closeErr
+}
+func (s *bidiCloseSendClientStream) Context() context.Context { return context.Background() }
+func (s *bidiCloseSendClientStream) SendMsg(any) error        { return nil }
+func (s *bidiCloseSendClientStream) RecvMsg(any) error {
+	// Block until CloseSend so the s2c path runs first (otherwise c2s EOF can win
+	// the select and skip CloseSend entirely).
+	<-s.closed
+	return io.EOF
+}
+
+type bidiCloseSendServerStream struct {
+	trailer metadata.MD
+}
+
+func (s *bidiCloseSendServerStream) SetHeader(metadata.MD) error  { return nil }
+func (s *bidiCloseSendServerStream) SendHeader(metadata.MD) error { return nil }
+func (s *bidiCloseSendServerStream) SetTrailer(md metadata.MD)    { s.trailer = md }
+func (s *bidiCloseSendServerStream) Context() context.Context     { return context.Background() }
+func (s *bidiCloseSendServerStream) SendMsg(any) error            { return nil }
+func (s *bidiCloseSendServerStream) RecvMsg(any) error            { return io.EOF }
 
 func TestUseBackendUnaryInterceptor_CoversProxy(t *testing.T) {
 	mux := NewMux()

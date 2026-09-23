@@ -87,6 +87,30 @@ describe("JsonRpcTransport server stream errors", () => {
     assert.equal(err, undefined);
     assert.deepEqual(messages, [{ code: 5, message: "just data" }]);
   });
+
+  it("keeps a message that nests error beside other fields as data", async () => {
+    // Only a top-level object whose sole key is `error` is the gateway failure
+    // envelope; a legitimate payload may contain a nested error field.
+    const payload = { n: "1", error: { code: 5, message: "nested field" } };
+    const body = `${JSON.stringify(payload)}\n`;
+    const messages = [];
+    const err = await withFetch(
+      async () =>
+        new Response(body, { status: 200, headers: { "Content-Type": "application/x-ndjson" } }),
+      async () => {
+        const call = transport().serverStreaming(watchMethod, {}, {});
+        try {
+          for await (const message of call.responses) messages.push(message);
+        } catch (e) {
+          return e;
+        }
+        return undefined;
+      },
+    );
+
+    assert.equal(err, undefined);
+    assert.deepEqual(messages, [payload]);
+  });
 });
 
 describe("JsonRpcTransport error bodies", () => {

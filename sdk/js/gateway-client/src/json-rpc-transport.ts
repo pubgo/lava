@@ -46,10 +46,16 @@ function appendMeta(headers: Headers, meta: RpcOptions["meta"]) {
  * Recognises the gateway's in-band NDJSON error envelope. The HTTP 200 is already
  * committed when a stream fails, so the status travels as the final line:
  * `{"error":{"code":<grpc code>,"message":<string>}}`.
+ *
+ * Only a top-level object whose sole key is `error` counts: a legitimate message
+ * that happens to nest an `error` field alongside other fields must stay data.
  */
 function streamErrorFromBody(value: unknown): GatewayError | undefined {
   if (typeof value !== "object" || value === null) return undefined;
-  const envelope = (value as Record<string, unknown>).error;
+  const obj = value as Record<string, unknown>;
+  const keys = Object.keys(obj);
+  if (keys.length !== 1 || keys[0] !== "error") return undefined;
+  const envelope = obj.error;
   if (typeof envelope !== "object" || envelope === null) return undefined;
   const { code, message } = envelope as Record<string, unknown>;
   if (typeof code !== "number") return undefined;
