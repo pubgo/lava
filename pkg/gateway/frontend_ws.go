@@ -107,6 +107,17 @@ func (f *wsFrontend) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // the gRPC status/message instead of relying on the close code alone.
 func closeWithStatus(conn *websocket.Conn, err error) {
 	st := status.Convert(err)
+	_ = conn.Close(wsCloseCode(st.Code()), wsCloseReason(st))
+}
+
+// maxWSCloseReasonLen is the WebSocket close-reason limit (RFC 6455 §7.4.1).
+const maxWSCloseReasonLen = 123
+
+// wsCloseReason renders the status payload as close-frame reason JSON. The
+// reason must stay valid UTF-8 within 123 bytes, so grpcMessage is shrunk
+// rune-safe and re-marshalled instead of slicing the serialized payload,
+// which could emit invalid UTF-8 or cut the JSON mid-object.
+func wsCloseReason(st *status.Status) string {
 	payload := struct {
 		GRPCStatus  uint32 `json:"grpcStatus"`
 		GRPCMessage string `json:"grpcMessage"`
@@ -115,16 +126,24 @@ func closeWithStatus(conn *websocket.Conn, err error) {
 		GRPCMessage: st.Message(),
 	}
 
-	reason := ""
-	if b, mErr := json.Marshal(payload); mErr == nil {
-		reason = string(b)
+	reason := marshalWSCloseReason(payload)
+	for len(reason) > maxWSCloseReasonLen && payload.GRPCMessage != "" {
+		msg := []rune(payload.GRPCMessage)
+		payload.GRPCMessage = string(msg[:len(msg)/2])
+		reason = marshalWSCloseReason(payload)
 	}
-	// WebSocket close reason is limited to 123 bytes.
-	if len(reason) > 123 {
-		reason = reason[:123]
+	if len(reason) > maxWSCloseReasonLen {
+		return ""
 	}
+	return reason
+}
 
-	_ = conn.Close(wsCloseCode(st.Code()), reason)
+func marshalWSCloseReason(payload any) string {
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return ""
+	}
+	return string(b)
 }
 
 // wsCloseCode maps a gRPC code to a WebSocket close code. OK uses the normal
