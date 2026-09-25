@@ -3,6 +3,7 @@ package https
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/async"
@@ -104,8 +105,17 @@ func (s *serviceImpl) start(ctx context.Context) {
 	})
 }
 
-func (s *serviceImpl) stop(ctx context.Context) {
+// shutdownTimeout bounds the drain window for in-flight requests on shutdown.
+const shutdownTimeout = 5 * time.Second
+
+func (s *serviceImpl) stop(context.Context) {
 	defer recovery.DebugPrint()
+
+	// The supervisor cancels the service context before Serve returns, so the
+	// drain window has to come from a fresh bounded context, not the Serve ctx.
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+
 	logutil.LogOrErr(s.log, "http server shutdown", func() error {
 		err := s.httpServer.ShutdownWithContext(ctx)
 		if netutil.IsErrServerClosed(err) {
