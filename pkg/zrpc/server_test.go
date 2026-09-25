@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/nats-io/nats.go"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
@@ -118,5 +119,57 @@ func TestClientCallUnary(t *testing.T) {
 
 	if resp.Value != "resp:ok" {
 		t.Fatalf("unexpected response: %q", resp.Value)
+	}
+}
+
+func TestHandleUnaryIncomingMetadata(t *testing.T) {
+	nc, err := nats.Connect(nats.DefaultURL)
+	if err != nil {
+		t.Skip("nats not available:", err)
+	}
+	defer nc.Close()
+
+	srv := zrpc.NewServer(nc)
+	defer srv.Close()
+
+	mdCh := make(chan metadata.MD, 1)
+	subject := "svc.test.Runtime/Meta"
+	queue := "test.runtime"
+	if err := zrpc.RegisterUnary(srv, subject, queue,
+		func() *wrapperspb.StringValue { return &wrapperspb.StringValue{} },
+		func(ctx context.Context, _ *wrapperspb.StringValue) (*wrapperspb.StringValue, error) {
+			md, _ := metadata.FromIncomingContext(ctx)
+			mdCh <- md
+			return &wrapperspb.StringValue{}, nil
+		},
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	msg := nats.NewMsg(subject)
+	msg.Data, err = proto.Marshal(&wrapperspb.StringValue{Value: "x"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg.Header = nats.Header{}
+	msg.Header.Set("X-Trace-Id", "trace-1")
+	msg.Header.Set(zrpc.HeaderStream, "1")
+
+	if _, err = nc.RequestMsgWithContext(context.Background(), msg); err != nil {
+		t.Fatal(err)
+	}
+
+	var md metadata.MD
+	select {
+	case md = <-mdCh:
+	case <-time.After(nats.DefaultTimeout):
+		t.Fatal("timed out waiting for handler")
+	}
+
+	if got := md.Get("x-trace-id"); len(got) != 1 || got[0] != "trace-1" {
+		t.Fatalf("unexpected x-trace-id metadata: %v", got)
+	}
+	if vals := md["zrpc-stream"]; len(vals) != 0 {
+		t.Fatalf("expected transport header to be filtered, got %v", vals)
 	}
 }

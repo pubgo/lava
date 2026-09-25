@@ -6,6 +6,7 @@ import (
 
 	"github.com/nats-io/nats.go"
 	"github.com/rs/xid"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/pubgo/lava/v2/pkg/httputil"
 	"github.com/pubgo/lava/v2/pkg/lava"
@@ -156,4 +157,36 @@ func contextRequestHeader(ctx context.Context) lava.RequestHeader {
 // lavacontexts.RspHeader 已保证不会 panic，这里直接透传。
 func contextResponseHeader(ctx context.Context) lava.ResponseHeader {
 	return lavacontexts.RspHeader(ctx)
+}
+
+// transportHeaders are zrpc wire headers that describe the transport itself and
+// must not leak into caller metadata: the stream framing keys belong to the
+// wire protocol, and the timeout is already applied to the request context.
+var transportHeaders = map[string]struct{}{
+	strings.ToLower(HeaderStream):       {},
+	strings.ToLower(HeaderStreamFrame):  {},
+	strings.ToLower(HeaderStreamReqSub): {},
+	strings.ToLower(HeaderTimeout):      {},
+}
+
+// incomingMetadata converts the caller's NATS headers into gRPC incoming
+// metadata so consumers of the handler context (such as the gateway bridge)
+// see what the caller sent instead of an empty metadata set.
+func incomingMetadata(header nats.Header) metadata.MD {
+	if len(header) == 0 {
+		return nil
+	}
+
+	md := make(metadata.MD, len(header))
+	for key, values := range header {
+		k := strings.ToLower(key)
+		if _, ok := transportHeaders[k]; ok {
+			continue
+		}
+		if strings.HasPrefix(k, "nats-") || len(values) == 0 {
+			continue
+		}
+		md[k] = append(md[k], values...)
+	}
+	return md
 }

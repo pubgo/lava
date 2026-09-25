@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/nats-io/nats.go"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/pubgo/lava/v2/pkg/httputil"
@@ -70,6 +71,10 @@ func HandleUnary[Req, Resp proto.Message](
 			ctx, cancel = context.WithTimeout(ctx, dur)
 			defer cancel()
 		}
+	}
+
+	if md := incomingMetadata(msg.Header); len(md) != 0 {
+		ctx = metadata.NewIncomingContext(ctx, md)
 	}
 
 	req := newReq()
@@ -195,6 +200,10 @@ func HandleStream(
 			ctx, cancel = context.WithTimeout(ctx, dur)
 			defer cancel()
 		}
+	}
+
+	if md := incomingMetadata(msg.Header); len(md) != 0 {
+		ctx = metadata.NewIncomingContext(ctx, md)
 	}
 
 	reqHeader := requestHeaderFromNATS(subject, msg.Header)
