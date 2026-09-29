@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-09-29
+
+本版本统一 gateway 分发层与 RPC middleware 契约,新增浏览器/Node 侧 JS SDK,**包含两项 breaking changes**(RPC middleware 边界、RPC 指标名)。
+
+### Added
+
+- **pkg/gateway**: 统一分发层(dispatcher)与前端流契约,新增 Backend 拦截器层与 gzip 压缩支持(带解压膨胀边界防护)
+- **sdk/js/gateway-client**: `@pubgo/lava-gateway-client`,浏览器/Node 侧 HTTP/JSON、JSON-RPC 与 gRPC-Web 客户端(`createHttpJsonClient` / `createJsonRpcTransport` / `createGrpcWebTransport`)
+- **internal/examples/grpcwebsocket/verify**: WebSocket 端到端验证工具;grpcweb / grpcwebsocket 示例重写并补 README
+- **测试**: `pkg/gateway`(HTTP/gRPC-Web/WS/流式)、`core/tunnel`、`pkg/middleware`、`pkg/zrpc`、`pkg/netutil` 等覆盖加深
+
+### Changed
+
+- **BREAKING — RPC middleware 边界**:`UseRPCMiddleware` 只包装 `Mux.Dispatch` / `DispatchFrontend`(HTTP/WS/gRPC-Web 等前端路径),不再覆盖直接把 Mux 当 `grpc.ClientConnInterface` 用的调用(`pb.NewXxxClient(mux)`)。这类调用改挂 `UseBackendUnaryInterceptor` / `UseBackendStreamInterceptor`,或走前端 / `DispatchFrontend`。原因:`Invoke`/`NewStream` 在流开始时就返回,包住它们会提前释放请求 `timeout` 的 `CancelFunc`。详见 `pkg/gateway/docs/usage.md`
+- **BREAKING — metrics**: RPC 指标名统一为 `lava_rpc_total` / `lava_rpc_failed_total` / `lava_rpc_handling_seconds`,客户端与服务端共用一组,用 `side`/`kind`/`service`/`method`/`stream`/`proto`(失败另有 `code`)区分;`gateway_server_*` 已删除,抓取端与看板需同步改
+- **gatewayserver**: 中间件链重构为 `rpc_middleware.go`(单链覆盖 unary + 全部流式模式,本地与代理后端共用)
+- **deps**: Fiber v3.4.0、OpenTelemetry v1.44.0、gRPC v1.81.1、prometheus/client_golang v1.24.1、golang.org/x/net v0.57.0
+- **CI**: lint-test 扩展;Pages 构建包含 `pkg/gateway/docs` 嵌套文档
+
+### Fixed
+
+- **servers**: 优雅关闭拿到的是已取消的 context,HTTP/WS 排空窗口实际为 0;现改为独立 5s drain context,gRPC `GracefulStop` 与 HTTP/WS 排空并行并带超时兜底(`servers/gatewayserver`、`servers/https`)
+- **pkg/gateway**: WebSocket close reason 按字节截断可能产生非法 UTF-8 并破坏 `{"grpcStatus":...}` JSON;改为 rune-safe 收缩 `grpcMessage` 后重新序列化
+- **pkg/zrpc**: handler context 未附加 gRPC incoming metadata,NATS 调用方的 header(auth/trace/req-id)在 gateway 桥接链路被静默丢弃;现转换为 incoming metadata(过滤传输内部键)
+- **pkg/gateway**: HTTP 流式帧长度上限、gRPC-Web trailer 键名与默认状态等帧协议加固;JS SDK inflate 边界同步收紧
+
+### Documentation
+
+- **pkg/gateway/docs**: 新增/重写 usage、architecture、design-evolution、grpcnative、grpcweb、internals、websocket 文档;README 重写,metrics 章节与代码对齐
+
 ## [2.2.0] - 2026-07-07
 
 本版本是 v2 分支的大规模架构收敛与发版前清理，**包含多项 breaking changes**。升级前请阅读下方「Removed」与 `docs/legacy-removal.md`。
