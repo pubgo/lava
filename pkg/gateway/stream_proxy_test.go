@@ -171,6 +171,7 @@ type bidiCloseSendBackend struct {
 func (b *bidiCloseSendBackend) Invoke(context.Context, string, any, any, ...grpc.CallOption) error {
 	return errors.New("unexpected Invoke")
 }
+
 func (b *bidiCloseSendBackend) NewStream(context.Context, *grpc.StreamDesc, string, ...grpc.CallOption) (grpc.ClientStream, error) {
 	return b.stream, nil
 }
