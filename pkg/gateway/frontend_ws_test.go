@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/coder/websocket"
 	"google.golang.org/grpc/codes"
@@ -169,6 +171,48 @@ func TestCloseWithStatus(t *testing.T) {
 			}
 			if payload.GRPCMessage != tc.message {
 				t.Fatalf("grpcMessage = %q, want %q", payload.GRPCMessage, tc.message)
+			}
+		})
+	}
+}
+
+func TestWSCloseReason(t *testing.T) {
+	longASCII := strings.Repeat("a", 500)
+	longUnicode := strings.Repeat("汉", 200) // 600 bytes, 200 runes
+
+	cases := []struct {
+		name    string
+		code    codes.Code
+		message string
+	}{
+		{"ok empty", codes.OK, ""},
+		{"short message kept verbatim", codes.NotFound, "user not found"},
+		{"long ascii truncated", codes.Internal, longASCII},
+		{"long unicode truncated rune-safe", codes.Internal, longUnicode},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			reason := wsCloseReason(status.New(tc.code, tc.message))
+			if len(reason) > maxWSCloseReasonLen {
+				t.Fatalf("reason length = %d, want <= %d", len(reason), maxWSCloseReasonLen)
+			}
+			if !utf8.ValidString(reason) {
+				t.Fatalf("reason is not valid UTF-8: %q", reason)
+			}
+
+			var payload struct {
+				GRPCStatus  uint32 `json:"grpcStatus"`
+				GRPCMessage string `json:"grpcMessage"`
+			}
+			if err := json.Unmarshal([]byte(reason), &payload); err != nil {
+				t.Fatalf("unmarshal close reason %q: %v", reason, err)
+			}
+			if codes.Code(payload.GRPCStatus) != tc.code {
+				t.Fatalf("grpcStatus = %d, want %d", payload.GRPCStatus, tc.code)
+			}
+			if !strings.HasPrefix(tc.message, payload.GRPCMessage) {
+				t.Fatalf("truncated message %q is not a rune prefix of %q", payload.GRPCMessage, tc.message)
 			}
 		})
 	}

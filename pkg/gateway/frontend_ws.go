@@ -9,7 +9,6 @@ import (
 	"github.com/coder/websocket"
 	"github.com/pubgo/funk/v2/log"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -42,9 +41,8 @@ func WithWSSubprotocols(subprotocols ...string) WSOption {
 }
 
 type wsFrontend struct {
-	mux        *Mux
-	dispatcher *Dispatcher
-	opts       wsOptions
+	mux  *Mux
+	opts wsOptions
 }
 
 // WebSocketHandler returns an http.Handler that bridges websocket clients to the
@@ -56,7 +54,7 @@ type wsFrontend struct {
 // and can be switched to protobuf (binary frames) via the "?encoding=proto"
 // query parameter or the "grpc-ws-proto" subprotocol.
 func (m *Mux) WebSocketHandler(opts ...WSOption) http.Handler {
-	f := &wsFrontend{mux: m, dispatcher: m.dispatcher}
+	f := &wsFrontend{mux: m}
 	for _, opt := range opts {
 		opt(&f.opts)
 	}
@@ -83,14 +81,11 @@ func (f *wsFrontend) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	enc := resolveWSEncoding(r, conn.Subprotocol())
 
-	md := metadata.MD{}
-	for k, vs := range r.Header {
-		md.Append(k, vs...)
-	}
+	reqCtx, _ := newIncomingContext(r.Context(), r.Header)
 
 	stream := &streamWS{
 		conn:     conn,
-		ctx:      metadata.NewIncomingContext(r.Context(), md),
+		ctx:      reqCtx,
 		method:   mth,
 		encoding: enc,
 		path:     match,
@@ -112,6 +107,17 @@ func (f *wsFrontend) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // the gRPC status/message instead of relying on the close code alone.
 func closeWithStatus(conn *websocket.Conn, err error) {
 	st := status.Convert(err)
+	_ = conn.Close(wsCloseCode(st.Code()), wsCloseReason(st))
+}
+
+// maxWSCloseReasonLen is the WebSocket close-reason limit (RFC 6455 §7.4.1).
+const maxWSCloseReasonLen = 123
+
+// wsCloseReason renders the status payload as close-frame reason JSON. The
+// reason must stay valid UTF-8 within 123 bytes, so grpcMessage is shrunk
+// rune-safe and re-marshalled instead of slicing the serialized payload,
+// which could emit invalid UTF-8 or cut the JSON mid-object.
+func wsCloseReason(st *status.Status) string {
 	payload := struct {
 		GRPCStatus  uint32 `json:"grpcStatus"`
 		GRPCMessage string `json:"grpcMessage"`
@@ -120,16 +126,24 @@ func closeWithStatus(conn *websocket.Conn, err error) {
 		GRPCMessage: st.Message(),
 	}
 
-	reason := ""
-	if b, mErr := json.Marshal(payload); mErr == nil {
-		reason = string(b)
+	reason := marshalWSCloseReason(payload)
+	for len(reason) > maxWSCloseReasonLen && payload.GRPCMessage != "" {
+		msg := []rune(payload.GRPCMessage)
+		payload.GRPCMessage = string(msg[:len(msg)/2])
+		reason = marshalWSCloseReason(payload)
 	}
-	// WebSocket close reason is limited to 123 bytes.
-	if len(reason) > 123 {
-		reason = reason[:123]
+	if len(reason) > maxWSCloseReasonLen {
+		return ""
 	}
+	return reason
+}
 
-	_ = conn.Close(wsCloseCode(st.Code()), reason)
+func marshalWSCloseReason(payload any) string {
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return ""
+	}
+	return string(b)
 }
 
 // wsCloseCode maps a gRPC code to a WebSocket close code. OK uses the normal
@@ -143,7 +157,7 @@ func wsCloseCode(code codes.Code) websocket.StatusCode {
 }
 
 func (f *wsFrontend) dispatch(stream *streamWS, op *Operation) error {
-	_, _, err := f.dispatcher.DispatchFrontend(stream.Context(), f.mux, stream, op)
+	_, _, err := f.mux.DispatchFrontend(stream.Context(), stream, op)
 	return err
 }
 
@@ -151,7 +165,7 @@ func (f *wsFrontend) resolveOperation(r *http.Request) (*Operation, *methodWrapp
 	path := r.URL.Path
 
 	// Direct gRPC full-method lookup: /pkg.Service/Method
-	if mth := f.mux.opts.handlers[path]; mth != nil {
+	if mth := f.mux.findMethod(path); mth != nil {
 		return operationFromMethod(mth), mth, nil, nil
 	}
 
@@ -159,7 +173,7 @@ func (f *wsFrontend) resolveOperation(r *http.Request) (*Operation, *methodWrapp
 	// WebSocket handshakes use GET, but google.api.http routes are often POST;
 	// try the request method first, then common HTTP verbs.
 	if match, values, ok := f.matchRESTPath(r); ok {
-		if mth := f.mux.opts.handlers[match.Operation]; mth != nil {
+		if mth := f.mux.findMethod(match.Operation); mth != nil {
 			return operationFromMethod(mth), mth, match, values
 		}
 	}
@@ -187,7 +201,7 @@ func (f *wsFrontend) matchRESTPath(r *http.Request) (*MatchOperation, url.Values
 		if err != nil {
 			continue
 		}
-		if f.mux.opts.handlers[match.Operation] == nil {
+		if f.mux.findMethod(match.Operation) == nil {
 			continue
 		}
 

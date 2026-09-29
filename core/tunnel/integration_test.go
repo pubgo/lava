@@ -16,9 +16,9 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/pubgo/lava/v2/core/tunnel"
-	"github.com/pubgo/lava/v2/core/tunnel/testhelper"
 	_ "github.com/pubgo/lava/v2/core/tunnel/kcp"
 	_ "github.com/pubgo/lava/v2/core/tunnel/quic"
+	"github.com/pubgo/lava/v2/core/tunnel/testhelper"
 	"github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
 	"github.com/pubgo/lava/v2/core/tunnel/tunnelgateway"
 	_ "github.com/pubgo/lava/v2/core/tunnel/yamux"
@@ -54,7 +54,7 @@ func runTransportTest(t *testing.T, transport string, basePort int) {
 			t.Logf("backend server error: %v", err)
 		}
 	}()
-		t.Cleanup(func() {
+	t.Cleanup(func() {
 		if err := backendSrv.Shutdown(ctx); err != nil {
 			t.Logf("backend shutdown failed: %v", err)
 		}
@@ -222,7 +222,7 @@ func TestAgentProxy_POST(t *testing.T) {
 			t.Logf("backend server error: %v", err)
 		}
 	}()
-		t.Cleanup(func() {
+	t.Cleanup(func() {
 		if err := srv.Shutdown(ctx); err != nil {
 			t.Logf("backend shutdown failed: %v", err)
 		}
@@ -250,7 +250,7 @@ func TestAgentProxy_POST(t *testing.T) {
 	if err := agent.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-		t.Cleanup(func() {
+	t.Cleanup(func() {
 		if err := agent.Stop(ctx); err != nil {
 			t.Logf("agent stop failed: %v", err)
 		}

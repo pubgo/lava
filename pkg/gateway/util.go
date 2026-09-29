@@ -18,6 +18,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
+	"github.com/pubgo/lava/v2/pkg/grpcutil"
 	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 )
 
@@ -161,9 +162,13 @@ func decodeBinHeader(v string) (string, error) {
 
 func newIncomingContext(ctx context.Context, header http.Header) (context.Context, metadata.MD) {
 	md := make(metadata.MD, len(header))
+	var callerCT []string
 	for k, vs := range header {
 		k = strings.ToLower(k)
 		if isReservedHeader(k) && !isWhitelistedHeader(k) {
+			if k == "content-type" {
+				callerCT = vs
+			}
 			continue
 		}
 		if strings.HasSuffix(k, binHdrSuffix) {
@@ -179,6 +184,15 @@ func newIncomingContext(ctx context.Context, header http.Header) (context.Contex
 			vs = dst
 		}
 		md[k] = vs
+	}
+
+	// The gateway's own codec choice makes "content-type" authoritative downstream,
+	// so it stays filtered — but the type the caller used is the only record of
+	// which protocol the request arrived on, and the RPC chain reads it from its own
+	// key. The gRPC-Web frontend rewrites "content-type" before this snapshot and
+	// records the caller's type itself, so an explicit entry wins.
+	if _, ok := md[grpcutil.MdContentType]; !ok && len(callerCT) != 0 {
+		md[grpcutil.MdContentType] = callerCT
 	}
 	return metadata.NewIncomingContext(ctx, md), md
 }

@@ -7,12 +7,14 @@ import (
 	"google.golang.org/grpc/resolver"
 
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccresolver"
+	"github.com/pubgo/lava/v2/pkg/grpcutil"
 )
 
 const (
 	// DefaultTimeout 默认的连接超时时间
-	DefaultTimeout     = 2 * time.Second
-	DefaultContentType = "application/grpc"
+	DefaultTimeout = 2 * time.Second
+	// DefaultContentType 默认的 gRPC content type
+	DefaultContentType = grpcutil.DefaultContentType
 )
 
 var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{

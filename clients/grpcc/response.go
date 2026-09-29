@@ -14,6 +14,6 @@ type response struct {
 	resp   any
 }
 
-func (r *response) Stream() bool                  { return r.stream != nil }
+func (r *response) Stream() bool                { return r.stream != nil }
 func (r *response) Header() lava.ResponseHeader { return r.header }
-func (r *response) Payload() any                 { return r.resp }
+func (r *response) Payload() any                { return r.resp }

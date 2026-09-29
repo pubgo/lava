@@ -4,22 +4,22 @@ import (
 	"context"
 	"testing"
 
-	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/httputil"
+	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/middleware/recovery"
 )
 
 type stubRequest struct{}
 
-func (stubRequest) Kind() string                { return "test" }
-func (stubRequest) Client() bool                { return false }
-func (stubRequest) Header() lava.RequestHeader  { return httputil.NewRequestHeader() }
-func (stubRequest) Payload() any                { return nil }
-func (stubRequest) ContentType() string         { return "" }
-func (stubRequest) Service() string             { return "" }
-func (stubRequest) Operation() string           { return "" }
-func (stubRequest) Endpoint() string            { return "" }
-func (stubRequest) Stream() bool                { return false }
+func (stubRequest) Kind() string               { return "test" }
+func (stubRequest) Client() bool               { return false }
+func (stubRequest) Header() lava.RequestHeader { return httputil.NewRequestHeader() }
+func (stubRequest) Payload() any               { return nil }
+func (stubRequest) ContentType() string        { return "" }
+func (stubRequest) Service() string            { return "" }
+func (stubRequest) Operation() string          { return "" }
+func (stubRequest) Endpoint() string           { return "" }
+func (stubRequest) Stream() bool               { return false }
 
 type stubResponse struct{}
 

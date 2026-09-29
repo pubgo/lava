@@ -51,5 +51,5 @@ gateway_server:
 
 ## 当前限制
 
-- 外层 `grpc.Server` 的全局拦截器与 `UnknownServiceHandler` 的协作依赖 grpc-go 行为；业务拦截器建议配置在 `Mux.SetUnaryInterceptor` / `SetStreamInterceptor`（作用于 inproc 后端）
+- 外层 `grpc.Server` 的全局拦截器与 `UnknownServiceHandler` 的协作依赖 grpc-go 行为；业务横切（鉴权、日志、指标、超时）配置在 `UseRPCMiddleware` / `UseBackendUnaryInterceptor` / `UseBackendStreamInterceptor`，它们对本地与 proxy 后端一致生效。`Mux.SetUnaryInterceptor` / `SetStreamInterceptor` 只覆盖 `RegisterService` 的 inproc 路径，是兼容层，不要当作统一挂点（见 [设计演进](design-evolution.md) 的中间件模型）。
 - 反射（reflection）、health 等服务仍需在外层 `grpc.Server` 单独注册（若需要）

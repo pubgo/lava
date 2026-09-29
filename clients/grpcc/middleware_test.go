@@ -8,8 +8,8 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
-	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/httputil"
+	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/lavacontexts"
 )
 

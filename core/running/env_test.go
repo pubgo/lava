@@ -7,12 +7,12 @@ func TestEnvHelpers(t *testing.T) {
 	t.Cleanup(func() { _ = Env.Set(orig) })
 
 	cases := []struct {
-		env           string
-		dev           bool
-		test          bool
-		stage         bool
-		prod          bool
-		nonProd       bool
+		env     string
+		dev     bool
+		test    bool
+		stage   bool
+		prod    bool
+		nonProd bool
 	}{
 		{EnvDev, true, false, false, false, true},
 		{EnvTest, false, true, false, false, true},

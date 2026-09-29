@@ -7,8 +7,8 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/httputil"
+	"github.com/pubgo/lava/v2/pkg/lava"
 )
 
 var (
@@ -32,13 +32,15 @@ func (r *Request) Operation() string {
 	return fmt.Sprintf("%s %s", r.Ctx.Method(), r.Ctx.Route().Path)
 }
 
-func (r *Request) Client() bool                { return false }
-func (r *Request) Header() lava.RequestHeader { return httputil.WrapRequestHeader(&r.Ctx.Request().Header) }
-func (r *Request) Payload() any                { return r.Ctx.Body() }
-func (r *Request) ContentType() string         { return string(r.Ctx.Request().Header.ContentType()) }
-func (r *Request) Service() string             { return r.Ctx.Route().Path }
-func (r *Request) Endpoint() string            { return string(r.Ctx.Request().RequestURI()) }
-func (r *Request) Stream() bool                { return r.Ctx.Request().IsBodyStream() }
+func (r *Request) Client() bool { return false }
+func (r *Request) Header() lava.RequestHeader {
+	return httputil.WrapRequestHeader(&r.Ctx.Request().Header)
+}
+func (r *Request) Payload() any        { return r.Ctx.Body() }
+func (r *Request) ContentType() string { return string(r.Ctx.Request().Header.ContentType()) }
+func (r *Request) Service() string     { return r.Ctx.Route().Path }
+func (r *Request) Endpoint() string    { return string(r.Ctx.Request().RequestURI()) }
+func (r *Request) Stream() bool        { return r.Ctx.Request().IsBodyStream() }
 
 // Response wraps a Fiber context as a lava HTTP response.
 type Response struct {
@@ -50,6 +52,8 @@ func NewResponse(ctx fiber.Ctx) lava.Response {
 	return &Response{Ctx: ctx}
 }
 
-func (h *Response) Header() lava.ResponseHeader { return httputil.WrapResponseHeader(&h.Ctx.Response().Header) }
-func (h *Response) Payload() any                 { return h.Ctx.Response().Body() }
-func (h *Response) Stream() bool                 { return h.Ctx.Response().IsBodyStream() }
+func (h *Response) Header() lava.ResponseHeader {
+	return httputil.WrapResponseHeader(&h.Ctx.Response().Header)
+}
+func (h *Response) Payload() any { return h.Ctx.Response().Body() }
+func (h *Response) Stream() bool { return h.Ctx.Response().IsBodyStream() }

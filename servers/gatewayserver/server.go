@@ -170,12 +170,14 @@ func (s *serviceImpl) init(
 	}
 	assert.If(mux.Err() != nil, "gateway mux registration failed: %v", mux.Err())
 
-	mux.SetUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
-	mux.SetStreamInterceptor(handlerStreamMiddle(srvMidMap))
+	// One RPC middleware chain covers unary + all stream modes for local and proxy,
+	// for every protocol frontend. In-process clients built directly on Mux
+	// (NewXxxClient(mux)) call the Backend layer instead and skip this chain.
+	mux.UseRPCMiddleware(handlerRPCMiddle(srvMidMap))
 
-	// Middleware runs on Mux (SetUnaryInterceptor); outer grpc.Server only passthroughs.
+	// Outer grpc.Server only passthroughs; services are registered on Mux.
 	grpcServerOpts := mux.GRPCServerOptions()
-	log.Info().Msg("gateway grpc passthrough: register services on Mux only")
+	log.Info().Msg("gateway grpc passthrough: register services on Mux only; lava middleware on UseRPCMiddleware")
 
 	grpcServer := conf.GrpcConfig.Build(grpcServerOpts...).Expect("failed to build grpc server")
 
@@ -302,13 +304,27 @@ func (s *serviceImpl) start(context.Context) error {
 	return nil
 }
 
-func (s *serviceImpl) stop(ctx context.Context) {
+// shutdownTimeout bounds the drain window for in-flight requests on shutdown.
+const shutdownTimeout = 5 * time.Second
+
+func (s *serviceImpl) stop(context.Context) {
 	defer recovery.DebugPrint()
 
-	logutil.LogOrErr(s.log, "grpc server graceful stop", func() error {
-		s.grpcServer.GracefulStop()
-		return nil
-	})
+	// The supervisor cancels the service context before Serve returns, so the
+	// drain window has to come from a fresh bounded context, not the Serve ctx.
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+
+	// GracefulStop has no deadline of its own; run it alongside the HTTP/WS
+	// drain and force-stop if it outlives the window.
+	grpcDone := make(chan struct{})
+	go func() {
+		defer close(grpcDone)
+		logutil.LogOrErr(s.log, "grpc server graceful stop", func() error {
+			s.grpcServer.GracefulStop()
+			return nil
+		})
+	}()
 
 	logutil.LogOrErr(s.log, "http server shutdown", func() error {
 		err := s.httpServer.ShutdownWithContext(ctx)
@@ -326,5 +342,13 @@ func (s *serviceImpl) stop(ctx context.Context) {
 			}
 			return err
 		})
+	}
+
+	select {
+	case <-grpcDone:
+	case <-ctx.Done():
+		s.log.Warn().Msg("grpc graceful stop timed out, forcing stop")
+		s.grpcServer.Stop()
+		<-grpcDone
 	}
 }

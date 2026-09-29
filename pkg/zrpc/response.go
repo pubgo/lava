@@ -11,5 +11,5 @@ type response struct {
 }
 
 func (r *response) Header() lava.ResponseHeader { return r.header }
-func (r *response) Payload() any                 { return r.payload }
-func (r *response) Stream() bool                 { return r.stream }
+func (r *response) Payload() any                { return r.payload }
+func (r *response) Stream() bool                { return r.stream }

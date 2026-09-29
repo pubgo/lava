@@ -4,6 +4,10 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { GreeterService } from "./greeter";
+import type { ChatMessage } from "./greeter";
+import type { DuplexStreamingCall } from "@protobuf-ts/runtime-rpc";
+import type { WatchHelloRequest } from "./greeter";
+import type { ServerStreamingCall } from "@protobuf-ts/runtime-rpc";
 import type { GoodbyeResponse } from "./greeter";
 import type { GoodbyeRequest } from "./greeter";
 import { stackIntercept } from "@protobuf-ts/runtime-rpc";
@@ -29,6 +33,18 @@ export interface IGreeterServiceClient {
      * @generated from protobuf rpc: SayGoodbye
      */
     sayGoodbye(input: GoodbyeRequest, options?: RpcOptions): UnaryCall<GoodbyeRequest, GoodbyeResponse>;
+    /**
+     * WatchHello 服务端流式返回多条问候（用于 WebSocket / server-stream 演示）
+     *
+     * @generated from protobuf rpc: WatchHello
+     */
+    watchHello(input: WatchHelloRequest, options?: RpcOptions): ServerStreamingCall<WatchHelloRequest, HelloResponse>;
+    /**
+     * Chat 双向流式对话（用于 WebSocket / bidi 演示）
+     *
+     * @generated from protobuf rpc: Chat
+     */
+    chat(options?: RpcOptions): DuplexStreamingCall<ChatMessage, ChatMessage>;
 }
 /**
  * GreeterService 提供简单的问候服务，用于测试 gRPC Web 实现
@@ -58,5 +74,23 @@ export class GreeterServiceClient implements IGreeterServiceClient, ServiceInfo 
     sayGoodbye(input: GoodbyeRequest, options?: RpcOptions): UnaryCall<GoodbyeRequest, GoodbyeResponse> {
         const method = this.methods[1], opt = this._transport.mergeOptions(options);
         return stackIntercept<GoodbyeRequest, GoodbyeResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * WatchHello 服务端流式返回多条问候（用于 WebSocket / server-stream 演示）
+     *
+     * @generated from protobuf rpc: WatchHello
+     */
+    watchHello(input: WatchHelloRequest, options?: RpcOptions): ServerStreamingCall<WatchHelloRequest, HelloResponse> {
+        const method = this.methods[2], opt = this._transport.mergeOptions(options);
+        return stackIntercept<WatchHelloRequest, HelloResponse>("serverStreaming", this._transport, method, opt, input);
+    }
+    /**
+     * Chat 双向流式对话（用于 WebSocket / bidi 演示）
+     *
+     * @generated from protobuf rpc: Chat
+     */
+    chat(options?: RpcOptions): DuplexStreamingCall<ChatMessage, ChatMessage> {
+        const method = this.methods[3], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ChatMessage, ChatMessage>("duplex", this._transport, method, opt);
     }
 }

@@ -4,6 +4,7 @@
 
 > **框架集成**：对外监听由 `servers/gatewayserver` 装配；NATS/zrpc 桥接见 `pkg/zrpcbridge`（非 gateway 前端）。
 > 全局架构见 [`docs/architecture-v2.md`](../../../docs/architecture-v2.md)；部署/TLS/HTTP/3 见 [deploy.md](deploy.md)。
+> **目标设计与演进计划**见 [design-evolution.md](design-evolution.md)。
 
 ## 设计理念
 
@@ -12,8 +13,10 @@ Gateway 模块基于 **Google API HTTP Annotation** 规范，实现了从 HTTP/R
 1. **声明式路由**：通过 Protobuf 注解定义 HTTP 路由，无需手动编写路由代码
 2. **协议透明**：客户端使用标准的 HTTP/JSON，后端使用 gRPC，Gateway 自动处理转换
 3. **类型安全**：基于 Protobuf 的类型系统，保证请求/响应的类型安全
-4. **可扩展性**：支持自定义编解码器、拦截器、压缩器等扩展点
-5. **多协议前端复用**：底层 gRPC handler 注册一次，多种上层协议（HTTP/REST、gRPC-Web、WebSocket 等）共享同一套调度与后端
+4. **可扩展性**：支持按 Content-Type 注册 Codec（`WithCodec`）；Backend 拦截器链覆盖本地与 proxy；HTTP/gRPC-Web 消息压缩经 `grpc-encoding` 协商（默认 gzip）
+5. **多协议前端复用**：底层 gRPC handler 注册一次，多种上层协议共享同一套调度与后端。HTTP 前端仅覆盖 unary / server-stream；client/bidi 请用 WebSocket 或 Native gRPC。
+
+完整目标契约与分阶段计划见 [design-evolution.md](design-evolution.md)。
 
 ## 分层架构
 
@@ -29,12 +32,13 @@ flowchart TB
     end
 
     subgraph CORE[核心调度层 Core]
-        REG[Registry<br/>routerTree + handlers]
+        REG[Registry<br/>Operation by FullMethod<br/>+ routerTree HTTP index]
         PUMP[Dispatcher 泵<br/>unary/server/client/bidi]
         CODEC[Codec<br/>proto/json/...]
     end
 
     subgraph BE[后端 gRPC 层 Backend]
+        MW[Backend interceptor chain<br/>本地+proxy 共用]
         INV["Mux<br/>grpc.ClientConnInterface"]
         INPROC[inprocgrpc.Channel<br/>本地 handler]
         PROXY[remoteProxyCli<br/>远程代理]
@@ -44,8 +48,9 @@ flowchart TB
     F1 & F2 & F3 & F4 --> REG
     SS --> PUMP
     PUMP --> INV
-    INV --> INPROC
-    INV --> PROXY
+    INV --> MW
+    MW --> INPROC
+    MW --> PROXY
 
     classDef fe fill:#E8F4FF,stroke:#4A90E2,color:#0B3D91;
     classDef core fill:#FFF7E8,stroke:#C87B00,color:#7A4A00;
@@ -61,7 +66,7 @@ flowchart TB
 | --- | --- | --- |
 | 前端协议层 | `httpFrontend`、`wsFrontend`、`GRPCPassthroughStreamHandler` | 协议解帧/编帧、路由或透传、构建流或转发 |
 | 核心调度层 | `Dispatcher`(`dispatcher.go`)、`Operation`(`core.go`) | 统一处理四种流模式，对接前端流与后端连接 |
-| 后端 gRPC 层 | `Mux`(`mux.go`) 实现 `grpc.ClientConnInterface` | `Invoke`/`NewStream` 分发到 `inprocgrpc` 本地 handler 或远程代理 |
+| 后端 gRPC 层 | `Mux` + `UseBackend*`（`backend.go`） | `Invoke`/`NewStream`；Backend 拦截器链后分发到 inproc 或 remote proxy |
 
 ### 核心抽象（core.go）
 
@@ -72,7 +77,8 @@ type Backend = grpc.ClientConnInterface
 // FrontendStream：各协议前端归一化后的流，本质是 grpc.ServerStream
 type FrontendStream = grpc.ServerStream
 
-// Operation：一个已注册 RPC 方法的元信息
+// Operation：已注册 RPC 的调度 SSOT（full method / 消息类型 / 流模式 / meta）
+// routerTree 只存 HTTP 路径 → FullMethod 索引，不复制 schema
 type Operation struct {
     FullMethod string
     InputType  protoreflect.MessageType
@@ -114,7 +120,8 @@ pkg/gateway/
 ├── stream.http.go      # HTTP / gRPC-Web 流实现（streamHTTP）
 ├── stream.grpcweb.go   # gRPC Web 帧写入器（fiberWebWriter）
 ├── stream.websocket.go # WebSocket 流实现（streamWS，实现 grpc.ServerStream）
-├── stream.proxy.go     # 透明代理泵 TransparentHandler（独立代理场景；bidi 调度已改用 dispatcher.go 的 pump）
+├── stream.proxy.go     # TransparentHandler：Dispatcher bidi + WithPropagateBackendHeaders
+├── backend.go          # Backend 拦截器链（本地 + proxy）
 ├── context.go          # 上下文和元数据管理
 ├── util.go             # 工具函数（HTTP Rule 解析、元数据转换等）
 ├── fieldmask.go        # FieldMask 支持
@@ -247,7 +254,7 @@ flowchart TD
     B -- No --> D["普通分支"]
 
     C --> C1{"Upgrade=websocket?"}
-    C1 -- Yes --> Cx["返回 500: unimplemented"]
+    C1 -- Yes --> Cx["返回 426 Upgrade Required"]
     C1 -- No --> C2["改写 Content-Type 为 application/grpc+enc"]
     C2 --> C3{"typ == grpc-web-text?"}
     C3 -- Yes --> C4["Base64 解码 body/stream"]
@@ -262,27 +269,26 @@ flowchart TD
     F -- No --> Fx["返回 match operation failed"]
     F -- Yes --> G["提取 path vars + 合并 query"]
 
-    G --> H["handlers operation 查找 methodWrapper"]
+    G --> H["LookupOperation / findMethod"]
     H --> I{"methodWrapper 存在?"}
     I -- No --> Ix["返回 method operation not found"]
     I -- Yes --> J["构建 metadata.MD"]
     J --> K["构建 streamHTTP"]
 
-    K --> L["stream.RecvMsg(in)"]
-    L --> M{"反序列化成功?"}
-    M -- No --> Mx["返回 unmarshal request failed"]
-    M -- Yes --> N["invokeWithStream"]
+    K --> O{"ClientStreams?"}
+    O -- Yes --> Ox["返回 Unimplemented（HTTP 501 / gRPC-Web trailer）"]
+    O -- No --> N["Mux.DispatchFrontend（内部 RecvMsg + Dispatch）"]
 
-    N --> O{"grpcStreamDesc != nil?"}
-    O -- No --> P["Unary: Invoke + SendMsg"]
-    O -- Yes --> Q["Server Stream: NewStream/Recv loop/SendHeader/SendMsg/Trailer"]
+    N --> P{"grpcStreamDesc == nil?"}
+    P -- Yes --> Q["Unary: Invoke + SendMsg"]
+    P -- No --> R["Server Stream: NewStream/Recv loop/SendHeader/SendMsg/Trailer"]
 
-    P --> R["写响应头 version/operation"]
-    Q --> R
-    R --> S{"gRPC-Web 分支?"}
-    S -- Yes --> T["flushWithTrailer"]
-    S -- No --> U["结束"]
-    T --> U
+    Q --> S["写响应头 version/operation"]
+    R --> S
+    S --> T{"gRPC-Web 分支?"}
+    T -- Yes --> U["flushWithTrailer"]
+    T -- No --> V["结束"]
+    U --> V
 
     classDef entry fill:#E8F4FF,stroke:#4A90E2,stroke-width:1.2px,color:#0B3D91;
     classDef decision fill:#F4EEFF,stroke:#7A5AF8,stroke-width:1.2px,color:#4C33B6;
@@ -291,11 +297,13 @@ flowchart TD
     classDef error fill:#FFECEC,stroke:#D14343,stroke-width:1.2px,color:#7D1F1F;
 
     class A entry;
-    class B,C1,C3,F,I,M,O,S decision;
-    class C,D,C2,C4,C5,C6,E,G,H,J,K,L,N,P,Q,R,T process;
-    class U success;
-    class Cx,Fx,Ix,Mx error;
+    class B,C1,C3,F,I,O,P,T decision;
+    class C,D,C2,C4,C5,C6,E,G,H,J,K,N,Q,R,S,U process;
+    class V success;
+    class Cx,Fx,Ix,Ox error;
 ```
+
+> 说明：HTTP/gRPC-Web 前端对 **client-stream / bidi** 返回 `Unimplemented`，请改用 WebSocket 或 Native gRPC。Unary / Server-Stream 经 `DispatchFrontend` 统一调度。
 
 ### RouterTree.Match 路由匹配流程图
 
@@ -334,71 +342,43 @@ flowchart TD
     class M error;
 ```
 
-### gRPC-Web-JSON 专项流程图
+### 三种 JSON 相关的 content type
 
-`application/grpc-web-json` 在当前实现中会走 **gRPC-Web 入口**，但在编解码阶段按 **JSON 传输** 处理（不走 gRPC frame）。
+带 JSON 的写法有两种，行为差别很大：**`+json` 后缀**才是 gRPC-Web 上的 JSON，**`grpc-web-json`** 这个别名走的是普通 HTTP/JSON。
 
-```mermaid
-flowchart TD
-    A["请求 Content-Type = application/grpc-web-json"] --> B["Handler 命中 gRPC-Web 分支"]
-    B --> C["改写请求头为 application/grpc+json"]
-    C --> D["创建 fiberWebWriter"]
-    D --> E["routerTree.Match"]
-    E --> F["构建 streamHTTP 并 RecvMsg"]
-    F --> G["isGRPCContentType(application/grpc-web-json) = false"]
-    G --> H["按 JSON 反序列化请求体"]
-    H --> I["invokeWithStream 调用后端 gRPC"]
-    I --> J["SendMsg 时按 JSON 序列化响应"]
-    J --> K["fiberWebWriter 写出 grpc-web 响应并 flush trailer"]
+| 请求 Content-Type                 | 入口判定                              | 请求头改写                     | `isGRPCContentType` | 帧         | 编解码       | 状态送达                        |
+| --------------------------------- | ------------------------------------- | ------------------------------ | ------------------- | ---------- | ------------ | ------------------------------- |
+| `application/grpc-web+proto`      | `isWebRequestFromContentType` 命中    | `application/grpc+proto`       | `true`              | gRPC frame | protobuf     | trailer 帧 `grpc-status`        |
+| `application/grpc-web+json`       | `isWebRequestFromContentType` 命中    | `application/grpc+json`        | `true`              | gRPC frame | JSON         | trailer 帧 `grpc-status`        |
+| `application/grpc-web-json`（别名） | `isWebRequestFromContentType` **不**命中 | 不改写                       | `false`             | 无         | JSON         | HTTP 状态码 + `{"code","message"}` |
 
-    classDef entry fill:#E8F4FF,stroke:#4A90E2,stroke-width:1.2px,color:#0B3D91;
-    classDef decision fill:#F4EEFF,stroke:#7A5AF8,stroke-width:1.2px,color:#4C33B6;
-    classDef process fill:#FFF7E8,stroke:#C87B00,stroke-width:1.2px,color:#7A4A00;
-
-    class A entry;
-    class G decision;
-    class B,C,D,E,F,H,I,J,K process;
-```
-
-> 说明：`stream.http.go` 中 `isGRPCContentType` 对 `application/grpc-web-json` 做了显式兼容，返回 `false`；相关行为由 `stream_http_test.go` 的 `TestIsGRPCContentType_GrpcWebJSONAlias` 覆盖。
-
-### grpc-web+proto vs grpc-web-json 差异对比
-
-| 维度                | grpc-web+proto                                   | grpc-web-json                      |
-| ------------------- | ------------------------------------------------ | ---------------------------------- |
-| 入口判定            | `isWebRequestFromContentType` 命中               | `isWebRequestFromContentType` 命中 |
-| 请求头改写          | `application/grpc+proto`                         | `application/grpc+json`            |
-| `isGRPCContentType` | `true`                                           | `false`（别名按 JSON 处理）        |
-| 请求解码            | gRPC frame + protobuf                            | JSON 反序列化                      |
-| 响应编码            | protobuf + gRPC frame                            | JSON 序列化                        |
-| 输出封装            | 由 `fiberWebWriter` 负责 grpc-web 响应与 trailer | 同左                               |
+别名这一行走的是完全普通的 HTTP/JSON 分支：既没有 base64，也没有 gRPC 帧和 trailer 帧。`isGRPCContentType` 里对 `application/grpc-web-json` 的显式判断是为了让这种请求体按裸 JSON 解析——去掉它，`{"..."}` 会被当成一个不完整的 gRPC 帧而报 `invalid gRPC frame: too short`（400）。
 
 ```mermaid
 flowchart LR
-    subgraph P["grpc-web+proto"]
-        P1["Content-Type: application/grpc-web+proto"] --> P2["Handler gRPC-Web 分支"]
-        P2 --> P3["改写为 application/grpc+proto"]
-        P3 --> P4["isGRPCContentType = true"]
-        P4 --> P5["RecvMsg: 解析 gRPC frame + protobuf"]
-        P5 --> P6["SendMsg: protobuf + gRPC frame"]
-        P6 --> P7["fiberWebWriter flush trailer"]
+    subgraph W["grpc-web+json（gRPC-Web 上的 JSON）"]
+        W1["Content-Type: application/grpc-web+json"] --> W2["Handler gRPC-Web 分支"]
+        W2 --> W3["改写为 application/grpc+json"]
+        W3 --> W4["RecvMsg: gRPC frame + JSON"]
+        W4 --> W5["SendMsg: JSON + gRPC frame"]
+        W5 --> W6["fiberWebWriter flush trailer"]
     end
 
-    subgraph J["grpc-web-json"]
-        J1["Content-Type: application/grpc-web-json"] --> J2["Handler gRPC-Web 分支"]
-        J2 --> J3["改写为 application/grpc+json"]
-        J3 --> J4["isGRPCContentType = false"]
-        J4 --> J5["RecvMsg: JSON 反序列化"]
-        J5 --> J6["SendMsg: JSON 序列化"]
-        J6 --> J7["fiberWebWriter flush trailer"]
+    subgraph A["application/grpc-web-json（别名）"]
+        A1["Content-Type: application/grpc-web-json"] --> A2["普通 HTTP/JSON 分支"]
+        A2 --> A4["RecvMsg: 裸 JSON 反序列化"]
+        A4 --> A5["SendMsg: JSON 序列化"]
+        A5 --> A6["HTTP 状态码 + {code,message}"]
     end
 
-    classDef proto fill:#EAFBF1,stroke:#2E8B57,stroke-width:1.2px,color:#165B33;
-    classDef json fill:#E8F4FF,stroke:#4A90E2,stroke-width:1.2px,color:#0B3D91;
+    classDef web fill:#EAFBF1,stroke:#2E8B57,stroke-width:1.2px,color:#165B33;
+    classDef alias fill:#E8F4FF,stroke:#4A90E2,stroke-width:1.2px,color:#0B3D91;
 
-    class P1,P2,P3,P4,P5,P6,P7 proto;
-    class J1,J2,J3,J4,J5,J6,J7 json;
+    class W1,W2,W3,W4,W5,W6 web;
+    class A1,A2,A4,A5,A6 alias;
 ```
+
+> 覆盖用例：`TestIsGRPCContentType_GrpcWebJSONAlias`（判定本身）、`TestHTTPFrontend_GRPCWebJSONIsPlainJSONTransport`（端到端：响应是裸 JSON，没有帧头）。
 
 ## 关键数据结构
 
@@ -448,26 +428,24 @@ type nodeTree struct {
 
 **编解码器接口：**
 ```go
+// types.go
 type Codec interface {
     encoding.Codec
+    // MarshalAppend appends the marshaled form of v to b and returns the result.
     MarshalAppend([]byte, any) ([]byte, error)
 }
-
-type StreamCodec interface {
-    Codec
-    ReadNext(buf []byte, r io.Reader, limit int) (dst []byte, n int, err error)
-    WriteNext(w io.Writer, src []byte) (n int, err error)
-}
 ```
+
+`CodecProto` 与 `CodecJSON` 另外导出了 `ReadNext` / `WriteNext`（长度前缀的消息读写）；仓库内目前没有调用方，gateway 自己的帧解析在 `streamHTTP` 里。
 
 ### 4. Stream（流处理）
 
 **流类型：**
-- `streamHTTP`：基于 Fiber Context 的 HTTP 请求/响应流
-- `fiberWebWriter`：gRPC Web 响应流
-- `streamWebSocket`：WebSocket 双向流
-- `streamInProcess`：进程内流
-- `streamProxy`：代理流
+- `streamHTTP`：基于 Fiber Context 的 HTTP 请求/响应流（HTTP/JSON、gRPC-Web、NDJSON 流式都用它）
+- `fiberWebWriter`：gRPC-Web 响应写入器（帧 + trailer）
+- `streamWS`：WebSocket 双向流
+
+进程内调用与代理后端不再有各自的 stream 类型：`Dispatcher` 只认前端的 `grpc.ServerStream`，后端由 `Backend`（`inprocgrpc.Channel`、`grpc.ClientConnInterface`、以及转发 call option 的 `callOptionsBackend`）表达。
 
 ### 5. ServiceWrapper 和 MethodWrapper
 
