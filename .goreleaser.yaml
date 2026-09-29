@@ -2,9 +2,6 @@ version: 2
 
 project_name: lava
 
-changelog:
-  disable: true
-
 builds:
   - main: ./tools/protoc-gen-zrpc-go/main.go
     id: protoc-gen-zrpc-go
