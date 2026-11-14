@@ -6,7 +6,6 @@ require (
 	github.com/gofiber/fiber/v3 v3.4.0
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/grandcat/zeroconf v1.0.0
-	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/jinzhu/copier v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
@@ -61,7 +60,7 @@ require (
 	github.com/pion/stun/v3 v3.1.6
 	github.com/projectdiscovery/machineid v0.0.0-20250715113114-c77eb3567582
 	github.com/pubgo/dix/v2 v2.0.1
-	github.com/pubgo/funk/v2 v2.0.5
+	github.com/pubgo/funk/v2 v2.1.0
 	github.com/pubgo/redant v0.4.0
 	github.com/quic-go/quic-go v0.59.1
 	github.com/rs/xid v1.6.0
@@ -92,6 +91,7 @@ require (
 )
 
 require (
+	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/nats-io/nkeys v0.4.12 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/pion/dtls/v3 v3.1.4 // indirect
@@ -105,7 +105,6 @@ require (
 
 require (
 	cel.dev/expr v0.25.1 // indirect
-	github.com/a8m/envsubst v1.4.3 // indirect
 	github.com/andybalholm/brotli v1.2.2 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
@@ -118,7 +117,6 @@ require (
 	github.com/creasty/defaults v1.7.0 // indirect
 	github.com/dave/jennifer v1.7.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/ettle/strcase v0.2.0 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
