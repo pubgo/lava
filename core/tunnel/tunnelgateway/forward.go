@@ -62,9 +62,11 @@ func (g *tunnelGateway) Forward(ctx context.Context, serviceName string, endpoin
 		errCh <- err
 	}()
 
-	// Preserve existing behavior: wait for the first copy to finish and
-	// discard its error; the copy result does not affect the return value.
-	<-errCh
+	// The first copy result does not affect the return value; log abnormal
+	// termination (a clean EOF yields nil) for observability.
+	if err := <-errCh; err != nil {
+		log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: tunnel copy ended with error")
+	}
 	return nil
 }
 
