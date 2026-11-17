@@ -358,7 +358,9 @@ func runCommand(watcherName, cmdStr string, timeout int) {
 		if err := cmd.Process.Kill(); err != nil {
 			log.Printf("[%s] Failed to kill process: %v", watcherName, err)
 		}
-		<-done
+		if err := <-done; err != nil {
+			log.Printf("[%s] Killed command error: %v", watcherName, err)
+		}
 		log.Printf("[%s] Command killed", watcherName)
 	}
 }

@@ -62,6 +62,8 @@ func (g *tunnelGateway) Forward(ctx context.Context, serviceName string, endpoin
 		errCh <- err
 	}()
 
+	// Preserve existing behavior: wait for the first copy to finish and
+	// discard its error; the copy result does not affect the return value.
 	<-errCh
 	return nil
 }
